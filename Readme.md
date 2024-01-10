@@ -1,6 +1,6 @@
 # Brand - Attention Project Page
 
-## Author: AlirezaHosseini
+## Author: Alireza Hosseini
 
 
 ## template from :
