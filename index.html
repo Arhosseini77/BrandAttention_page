@@ -93,15 +93,24 @@
           <div class="content" style="text-align: justify;"> <!-- Inline CSS for text alignment -->
             <h3><strong>Abstract</strong></h3>
             <p>
-              In a competitive business landscape, brand visibility, particularly through logos, plays a critical role in
-              consumer perception and product success. We introduces an advanced framework leveraging YOLOv8 for logo detection
-              in advertising and packaging images. A novel saliency prediction model, tailored for these contexts and incorporating
-              text maps, significantly outperforms existing models in predicting visual attention. The framework quantitatively
-              evaluates the attention drawn to brand logos, integrating logo detection with saliency map generation to yield a
-              comprehensive brand attention score. Supported by a unique dataset examining 12 cognitive hypotheses, our approach
-              not only validates previous theories on logo placement but also introduces new propositions for optimization in logo
-              packaging placement and design. This study offers significant tools and insights for enhancing brand visibility, with
-              practical implications.
+              In the highly competitive area of product marketing, the visibility of brand logos
+              on packaging plays a crucial role in shaping consumer perception, directly influencing
+              the success of the product. This paper introduces a comprehensive framework to measure
+              the brand logo's attention on a packaging design. The proposed method consists of three steps.
+              The first step leverages YOLOv8 for precise logo detection across prominent datasets, FoodLogoDet-1500
+              and LogoDet-3K. The second step involves modeling the user's visual attention with a novel saliency
+              prediction model tailored for the packaging context. The proposed saliency model combines the visual
+              elements with text maps employing a transformers-based architecture to predict user attention maps.
+              In the third step, by integrating logo detection with saliency map generation, the framework provides
+              a comprehensive brand attention score. The effectiveness of the proposed method is assessed module by module,
+              ensuring a thorough evaluation of each component. Comparing logo detection and saliency map prediction
+              with state-of-the-art models shows the superiority of the proposed methods. To investigate the robustness
+              of the proposed brand attention score, we collected a unique dataset to examine previous psychophysical
+              hypotheses related to brand visibility. Results show that the brand attention score is in line with
+              all previous studies. Furthermore, we introduced seven new hypotheses to check the impact of position,
+              orientation, presence of person, and other visual elements on brand attention.  This research marks a
+              significant stride in the intersection of cognitive psychology, computer vision, and marketing, paving
+              the way for advanced, consumer-centric packaging designs.
             </p>
           </div>
         </div>
