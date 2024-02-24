@@ -388,6 +388,72 @@
           </div>
         </div>
       </div>
+
+     
+      
+    <!-- ======= Modules Section ======= -->
+    <section id="Modules" class="features" data-aos="fade-up">
+      <div class="container">
+        <div class="row">
+          <!-- Module 1: Logo-Detection -->
+          <div class="col-md-12" data-aos="fade-up" data-aos-delay="100">
+            <p>
+              This module focuses on detecting brand logos in images using the <a href="https://github.com/ultralytics/ultralytics" target="_blank" rel="noopener noreferrer">YOLOv8</a> model. It utilizes two datasets for training:
+              <a href="https://github.com/hq03/FoodLogoDet-1500-Dataset" target="_blank" rel="noopener noreferrer">FoodLogoDet-1500</a> and
+              <a href="https://github.com/Wangjing1551/LogoDet-3K-Dataset" target="_blank" rel="noopener noreferrer">LogoDet-3K</a>.
+            </p>
+
+            <p> </p>
+
+            <!-- Slideshow container -->
+            <div style="max-width: 300px; position: relative; margin: auto;">
+              <!-- Full-width images with number and caption text -->
+              <div class="mySlides">
+                <img src="assets/img/logo_detection/logo1.png" style="width:100%">
+              </div>
+
+              <div class="mySlides">
+                <img src="assets/img/logo_detection/logo2.png" style="width:100%">
+              </div>
+
+              <div class="mySlides">
+                <img src="assets/img/logo_detection/logo4.png" style="width:100%" , style="margin-bottom: 200px;">
+              </div>
+
+
+              <!-- Next and previous buttons -->
+              <a class="prev" onclick="plusSlides(-1)" style="cursor: pointer; position: absolute; top: 50%; left: -30px; width: auto; padding: 16px; color: blue; font-weight: bold; font-size: 18px; transition: 0.6s ease; user-select: none;">&#10094;</a>
+              <a class="next" onclick="plusSlides(1)" style="cursor: pointer; position: absolute; top: 50%; right: -30px; width: auto; padding: 16px; color: blue; font-weight: bold; font-size: 18px; transition: 0.6s ease; user-select: none;">&#10095;</a>
+            </div>
+          </div>
+
+          <script>
+            var slideIndex = 1;
+            showSlides(slideIndex);
+
+            // Next/previous controls
+            function plusSlides(n) {
+              showSlides(slideIndex += n);
+            }
+
+            // Thumbnail image controls
+            function currentSlide(n) {
+              showSlides(slideIndex = n);
+            }
+
+            function showSlides(n) {
+              var i;
+              var slides = document.getElementsByClassName("mySlides");
+              if (n > slides.length) {slideIndex = 1}
+              if (n < 1) {slideIndex = slides.length}
+              for (i = 0; i < slides.length; i++) {
+                  slides[i].style.display = "none";
+              }
+              slides[slideIndex-1].style.display = "block";
+            }
+          </script>
+
+
     </section>
     <!-- End Features Section -->
 
@@ -478,19 +544,12 @@
 
         <div class="section-title">
           <h2>Contact</h2>
-          <p>Magnam dolores commodi suscipit. Necessitatibus eius consequatur ex aliquid fuga eum quidem. Sit sint consectetur velit. Quisquam quos quisquam cupiditate. Et nemo qui impedit suscipit alias ea. Quia fugiat sit in iste officiis commodi quidem hic quas.</p>
+          <p>For questions, clarifications, please get in touch with:</p>
         </div>
-
-        <div class="row" data-aos="fade-in">
-          <div class="col-lg-5 d-flex align-items-stretch mx-auto"> <!-- Added mx-auto for centering -->
-          <div class="info">
-            <div class="email">
-            <i class="bi bi-envelope"></i>
-            <p>alireza.hosseini.7711@gmail.com</p>
-            <p>k.hooshanfar02@gmail.com</p>
-            </div>
-          </div>
-          </div>
+              <div class="email text-center"> 
+                <i class="bi bi-envelope"></i>
+                <p>alireza.hosseini.7711@gmail.com</p>
+                <p>k.hooshanfar02@gmail.com</p>
         </div>
 
       </div>
