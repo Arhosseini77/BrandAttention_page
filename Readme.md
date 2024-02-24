@@ -1,7 +1,5 @@
 # Brand - Attention Project Page
 
-## Author: Alireza Hosseini
-
 
 ## template from :
 Template Name: Bikin
