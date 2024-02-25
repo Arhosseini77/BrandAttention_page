@@ -156,31 +156,33 @@
             </div>
           </div>
 
+
           <script>
             var slideIndex = 1;
             showSlides(slideIndex);
-
+        
             // Next/previous controls
             function plusSlides(n) {
-              showSlides(slideIndex += n);
+                showSlides(slideIndex + n);
             }
-
+        
             // Thumbnail image controls
             function currentSlide(n) {
-              showSlides(slideIndex = n);
+                showSlides(n);
             }
-
+        
             function showSlides(n) {
-              var i;
-              var slides = document.getElementsByClassName("mySlides");
-              if (n > slides.length) {slideIndex = 1}
-              if (n < 1) {slideIndex = slides.length}
-              for (i = 0; i < slides.length; i++) {
-                  slides[i].style.display = "none";
-              }
-              slides[slideIndex-1].style.display = "block";
+                var i;
+                var slides = document.getElementsByClassName("mySlides");
+                if (n > slides.length) { slideIndex = 1; }
+                if (n < 1) { slideIndex = slides.length; }
+                for (i = 0; i < slides.length; i++) {
+                    slides[i].style.display = "none";
+                }
+                slides[slideIndex - 1].style.display = "block";
+                slideIndex = n; // Update slideIndex
             }
-          </script>
+        </script>
 
 <br><br>
 <p> </p>
@@ -453,16 +455,18 @@
             }
           </script>
 
+<br><br>
+<p> </p>
 
           <!-- Module 3: Brand Attention -->
-          <!-- <div class="col-md-12" data-aos="fade-up" data-aos-delay="200">
+          <div class="col-md-12" data-aos="fade-up" data-aos-delay="200">
             <h3><strong>3. Brand Attention</strong></h3>
 
             <p>
               This module is designed for predicting saliency maps of images, particularly suited for use in ads and packaging. The model leverages the ECSAL dataset for training. You can find the dataset <a href="https://github.com/leafy-lee/E-commercial-dataset" target="_blank" rel="noopener noreferrer">here</a>.
             </p>
 
-            <p> </p> -->
+            <p> </p>
 
 
 
