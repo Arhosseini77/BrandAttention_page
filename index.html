@@ -25,26 +25,7 @@
   <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
 
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-  
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-  
-      gtag('js', new Date());
-  
-      gtag('config', 'G-PYVRSFMDRL');
-    </script>
-  
-    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
-          rel="stylesheet">
-
-  <!-- Template Main CSS File -->
-  <link href="assets/css/style.css" rel="stylesheet">
-<!-- 1) Configure MathJax before loading it -->
+  <!-- 1) Configure MathJax before loading it -->
 <script>
   window.MathJax = {
     tex: {
@@ -65,7 +46,59 @@
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 
+  <!-- Template Main CSS File -->
+  <link href="assets/css/style.css" rel="stylesheet">
+
+
+    <!-- Inline Styles for Conversation Bubbles -->
+    <style>
+      /* Container for the chat messages */
+      #chat-log {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      /* Common styling for all messages */
+      .message {
+        padding: 10px 15px;
+        border-radius: 15px;
+        max-width: 70%;
+        word-wrap: break-word;
+      }
+      /* User messages appear on the right */
+      .user-message {
+        background-color: #007bff !important;
+        color: #ffffff !important;
+        align-self: flex-end;
+        text-align: right;
+      }
+      /* Bot messages appear on the left */
+      .bot-message {
+        background-color: #f1f0f0;
+        color: #333;
+        align-self: flex-start;
+        text-align: left;
+      }
+    </style>
+    
+  
+    <script>
+      // Gemini API details
+      const KEY = "AIzaSyDw5BXKviHm_RoPjjNJdZZjjtaSnJ1oLxQ";
+      const GEMINI_API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + KEY;
+  
+      
+    </script>
+  
+  <!-- =======================================================
+  * Template Name: Bikin
+  * Updated: Sep 18 2023 with Bootstrap v5.3.2
+  * Template URL: https://bootstrapmade.com/bikin-free-simple-landing-page-template/
+  * Author: BootstrapMade.com
+  * License: https://bootstrapmade.com/license/
+  ======================================================== -->
 </head>
+
 <body>
 
   <script>
@@ -78,16 +111,7 @@
       .then(text => { paperSource = text; })
       .catch(err => console.error('Couldn’t load paper.txt:', err));
   </script>
-  <!-- =======================================================
-  * Template Name: Bikin
-  * Updated: Sep 18 2023 with Bootstrap v5.3.2
-  * Template URL: https://bootstrapmade.com/bikin-free-simple-landing-page-template/
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
-</head>
-
-<body>
+  
 
   <!-- ======= Header ======= -->
   <header id="header" class="fixed-top">
@@ -137,100 +161,47 @@
 
   </section><!-- End Hero -->
 
-  <main id="main">
 
-
-
-      <!-- Inline Styles for Conversation Bubbles -->
-  <style>
-    /* Container for the chat messages */
-    #chat-log {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      padding: 10px;
-      background: #fafafa;
-      height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-    /* Common styling for all messages */
-    .message {
-      padding: 10px 15px;
-      border-radius: 15px;
-      max-width: 70%;
-      word-wrap: break-word;
-    }
-    /* User messages appear on the right */
-    .user-message {
-      background-color: #007bff;
-      color: #fff;
-      align-self: flex-end;
-      text-align: right;
-    }
-    /* Bot messages appear on the left */
-    .bot-message {
-      background-color: #f1f0f0;
-      color: #333;
-      align-self: flex-start;
-      text-align: left;
-    }
-  </style>
-
-  <!-- Gemini API details -->
-  <script>
-    const KEY = "AIzaSyDw5BXKviHm_RoPjjNJdZZjjtaSnJ1oLxQ";
-    const GEMINI_API_ENDPOINT = 
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" 
-      + KEY;
-  </script>
-
-
-<!-- ===== Paper Chatbot ===== -->
-<section id="chat-widget" class="section">
-  <div class="container is-max-desktop">
-    <div class="card">
-      <div class="card-content">
-
-        <!-- Header + Reset -->
-        <div class="level mb-4">
-          <div class="level-left">
-            <h2 class="title is-4">Chat about this Paper</h2>
+    <!-- Chat Widget Section -->
+    <section id="chat-widget" class="container my-5" data-aos="fade-up" style="max-width: 1000px;">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <!-- Title and Reset Button -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="card-title mb-0">Chat about this Paper</h2>
+            <button id="reset-chat" class="btn btn-light border">Reset</button>
           </div>
-          <div class="level-right">
-            <button id="reset-chat" class="button is-light">Reset</button>
+  
+          <!-- Suggestion Buttons -->
+          <div class="mb-3">
+            <button class="btn btn-outline-secondary me-2 suggestion-btn" data-question="What is the main contribution?">Contribution</button>
+            <button class="btn btn-outline-secondary me-2 suggestion-btn" data-question="Who are the authors?">Authors</button>
+            <button class="button is-small suggestion-btn" data-question="What datasets are used in this paper?">
+            Datasets
+            </button>
+            <button class="button is-small suggestion-btn" data-question="How is the Brand‑Attention score computed?">
+              Brand‑Attention Score
+            </button>
+            <button class="btn btn-outline-secondary me-2 suggestion-btn" data-question="Show the BibTeX entry.">BibTeX</button>
           </div>
+  
+          <!-- Chat Log -->
+          <div id="chat-log" class="form-control mb-3" style="height: 300px; overflow-y: auto; background-color: #fafafa;"></div>
+  
+          <!-- Chat Form -->
+          <form id="chat-form" class="input-group">
+            <input 
+              type="text" 
+              id="chat-input" 
+              class="form-control" 
+              placeholder="Ask a question about the paper…" required>
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
         </div>
-
-        <!-- Suggested Questions -->
-        <div class="buttons mb-3">
-          <button class="button is-small suggestion-btn" data-question="What is the main contribution?">Contribution</button>
-          <button class="button is-small suggestion-btn" data-question="Who are the authors?">Authors</button>
-          <button class="button is-small suggestion-btn" data-question="Explain DFTSal.">DFTSal</button>
-          <button class="button is-small suggestion-btn" data-question="How does the LTEB block work?">LTEB</button>
-          <button class="button is-small suggestion-btn" data-question="Show the BibTeX entry.">BibTeX</button>
-        </div>
-
-        <!-- Chat Log -->
-        <div id="chat-log"></div>
-
-        <!-- Chat Input -->
-        <form id="chat-form" class="field has-addons">
-          <div class="control is-expanded">
-            <input id="chat-input" class="input" type="text"
-                   placeholder="Ask a question about the paper…" required>
-          </div>
-          <div class="control">
-            <button type="submit" class="button is-primary">Send</button>
-          </div>
-        </form>
-
       </div>
-    </div>
-  </div>
-</section>
-<!-- ===== End Chatbot ===== -->
+    </section>
+
+  <main id="main">
 
     <!-- ======= Abstract Section ======= -->
   <section id="abstract" class="about">
