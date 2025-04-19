@@ -24,9 +24,60 @@
   <link href="assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
   <link href="assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+  
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+  
+      gtag('js', new Date());
+  
+      gtag('config', 'G-PYVRSFMDRL');
+    </script>
+  
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+          rel="stylesheet">
+
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
+<!-- 1) Configure MathJax before loading it -->
+<script>
+  window.MathJax = {
+    tex: {
+      // enable both \(…\)/\[…\] and $…$/$$…$$
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      displayMath: [ ['$$','$$'], ['\\[','\\]'] ]
+    },
+    options: {
+      skipHtmlTags: ['script','noscript','style','textarea','pre']
+    }
+  };
+</script>
 
+<!-- 2) Load MathJax -->
+<script
+  id="MathJax-script"
+  async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+</head>
+<body>
+
+  <script>
+    let paperSource = '';
+    fetch('./paper.txt')           // ← point at the actual filename
+      .then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.text();
+      })
+      .then(text => { paperSource = text; })
+      .catch(err => console.error('Couldn’t load paper.txt:', err));
+  </script>
   <!-- =======================================================
   * Template Name: Bikin
   * Updated: Sep 18 2023 with Bootstrap v5.3.2
@@ -87,6 +138,99 @@
   </section><!-- End Hero -->
 
   <main id="main">
+
+
+
+      <!-- Inline Styles for Conversation Bubbles -->
+  <style>
+    /* Container for the chat messages */
+    #chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      background: #fafafa;
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    /* Common styling for all messages */
+    .message {
+      padding: 10px 15px;
+      border-radius: 15px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+    /* User messages appear on the right */
+    .user-message {
+      background-color: #007bff;
+      color: #fff;
+      align-self: flex-end;
+      text-align: right;
+    }
+    /* Bot messages appear on the left */
+    .bot-message {
+      background-color: #f1f0f0;
+      color: #333;
+      align-self: flex-start;
+      text-align: left;
+    }
+  </style>
+
+  <!-- Gemini API details -->
+  <script>
+    const KEY = "AIzaSyDcHo_x2I0oGF2pK1YMlLVSpBNb94BtGoI";
+    const GEMINI_API_ENDPOINT = 
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" 
+      + KEY;
+  </script>
+
+
+<!-- ===== Paper Chatbot ===== -->
+<section id="chat-widget" class="section">
+  <div class="container is-max-desktop">
+    <div class="card">
+      <div class="card-content">
+
+        <!-- Header + Reset -->
+        <div class="level mb-4">
+          <div class="level-left">
+            <h2 class="title is-4">Chat about this Paper</h2>
+          </div>
+          <div class="level-right">
+            <button id="reset-chat" class="button is-light">Reset</button>
+          </div>
+        </div>
+
+        <!-- Suggested Questions -->
+        <div class="buttons mb-3">
+          <button class="button is-small suggestion-btn" data-question="What is the main contribution?">Contribution</button>
+          <button class="button is-small suggestion-btn" data-question="Who are the authors?">Authors</button>
+          <button class="button is-small suggestion-btn" data-question="Explain DFTSal.">DFTSal</button>
+          <button class="button is-small suggestion-btn" data-question="How does the LTEB block work?">LTEB</button>
+          <button class="button is-small suggestion-btn" data-question="Show the BibTeX entry.">BibTeX</button>
+        </div>
+
+        <!-- Chat Log -->
+        <div id="chat-log"></div>
+
+        <!-- Chat Input -->
+        <form id="chat-form" class="field has-addons">
+          <div class="control is-expanded">
+            <input id="chat-input" class="input" type="text"
+                   placeholder="Ask a question about the paper…" required>
+          </div>
+          <div class="control">
+            <button type="submit" class="button is-primary">Send</button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ===== End Chatbot ===== -->
 
     <!-- ======= Abstract Section ======= -->
   <section id="abstract" class="about">
@@ -891,6 +1035,172 @@
         </div>
     </div>
   </footer><!-- End Footer -->
+
+
+  <script>
+    // Append a chat message to the DOM
+    function appendMessage(text, sender) {
+      const log = document.getElementById('chat-log');
+      const msg = document.createElement('div');
+      msg.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+      msg.innerHTML = text;
+      log.appendChild(msg);
+      log.scrollTop = log.scrollHeight;
+  
+      // Re-render any TeX in this new message
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([ msg ]).catch(err =>
+          console.error('MathJax typeset failed:', err)
+        );
+      }
+    }
+  
+        // Post‑processing: bold and equations
+      // Enhanced post‑processing: bold, lists, paragraphs, equations
+      function formatReply(text) {
+        
+        // 1) turn \url{…} into clickable links
+        text = text.replace(/\\url\{([^}]+)\}/g,
+          '<a href="$1" target="_blank">$1</a>'
+        );
+  
+        // 2) turn {\tt\small {a,b}@domain} into mailto links
+        text = text.replace(
+          /\{\\tt\\small\s*\\\{([^}]+)\}@([^\}]+)\}/g,
+          (_, userList, domain) => {
+            return userList
+              .split(',')
+              .map(u => u.trim() + '@' + domain)
+              .map(email => `<a href="mailto:${email}">${email}</a>`)
+              .join(', ');
+          }
+        );
+  
+        // 1) bold → <strong>
+        let out = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  
+        // 2) break out inline “: * ” bullets into their own lines
+        out = out.replace(/:\s*\* /g, ':\n* ');
+  
+        // 4) split lines, build lists and paragraphs
+        const lines = out.split('\n');
+        let html = '';
+        let inList = false;
+  
+        for (let line of lines) {
+          if (/^\*\s+/.test(line)) {
+            // start or continue a list
+            if (!inList) {
+              html += '<ul>';
+              inList = true;
+            }
+            html += `<li>${line.replace(/^\*\s+/, '')}</li>`;
+          } else {
+            // close any open list
+            if (inList) {
+              html += '</ul>';
+              inList = false;
+            }
+  
+            if (/^\s*<pre>/.test(line)) {
+              // already a code block
+              html += line;
+            } else if (line.trim() !== '') {
+              // normal paragraph
+              html += `<p>${line.trim()}</p>`;
+            }
+            // else: skip blank lines
+          }
+        }
+  
+        // if we ended inside a list, close it
+        if (inList) {
+          html += '</ul>';
+        }
+  
+        return html;
+      }
+  
+    // Reset chat
+    document.getElementById('reset-chat').addEventListener('click', () => {
+      document.getElementById('chat-log').innerHTML = '';
+    });
+  
+    // Handle suggestion buttons
+    document.querySelectorAll('.suggestion-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const q = btn.dataset.question;
+        document.getElementById('chat-input').value = q;
+        document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+      });
+    });
+  
+    // Handle form submit
+    document.getElementById('chat-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      const question = input.value.trim();
+      if (!question) return;
+      appendMessage(question, 'user');
+      input.value = '';
+  
+      // Show a typing indicator
+      appendMessage('...', 'bot');
+  
+      // Build prompt
+      const prompt = `
+  You are an AI assistant tasked with answering questions based *exclusively* on the provided LaTeX source document.
+  
+  **Your Goal:** Provide a short clear, structured, and accurate answers synthesized *only* from the information present in the LaTeX source.
+  
+  **LaTeX Source:**
+  \`\`\`latex
+  ${paperSource}
+  \`\`\`
+  
+  **Instructions for Generating Your Answer:**
+  
+  1.  **Relevance:** Directly address the user's question. Find all relevant information within the source to construct your answer.
+  2.  **Structure:**
+      * Organize your answer logically. Use paragraphs for explanations.
+      * Use bullet points for lists or distinct points if it enhances clarity.
+      * Ensure the answer flows well and is easy to understand.
+  3.  **Synthesis:** Do not just copy-paste sections. Synthesize the information from the relevant parts of the source into a coherent response. Rephrase in your own words, while staying true to the source content.
+  4.  **Out-of-Scope Questions:** If the user's question cannot be answered using *only* the provided LaTeX source, reply *exactly* with:
+      "I'm sorry, I can only answer questions about this paper."
+  
+  User: ${question}
+  Assistant:
+  `;
+  
+  try {
+        const res = await fetch(GEMINI_API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        });
+        if (!res.ok) throw new Error(`API ${res.status}`);
+  
+        const data = await res.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text.trim() || 'No response.';
+  
+        // Replace typing indicator with the real answer
+        const log = document.getElementById('chat-log');
+        log.lastChild.innerHTML = formatReply(reply);
+  
+        // Re-typeset that final message
+        if (window.MathJax && MathJax.typesetPromise) {
+          MathJax.typesetPromise([ log.lastChild ])
+            .catch(err => console.error('MathJax typeset failed:', err));
+        }
+  
+      } catch (err) {
+        const log = document.getElementById('chat-log');
+        log.lastChild.textContent = 'Error: ' + err.message;
+        console.error(err);
+      }
+    });
+    </script>
 
   <div id="preloader"></div>
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
