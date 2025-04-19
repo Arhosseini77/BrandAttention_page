@@ -1,0 +1,847 @@
+
+
+\title{Brand Visibility in Packaging: A Deep Learning Approach for Logo Detection, Saliency-Map Prediction, and Logo Placement Analysis}
+
+\author[1]{\fnm{Alireza} \sur{Hosseini}}\email{arhosseini77@ut.ac.ir}
+\author[1]{\fnm{Kiana} \sur{Hooshanfar}}\email{k.hooshanfar@ut.ac.ir}
+\author[2]{\fnm{Pouria} \sur{Omrani}}\email{pouria.omrani@ieee.org}
+\author[3]{\fnm{Reza} \sur{Toosi}}\email{rtoosi81@gmail.com}
+\author[1]{\fnm{Ramin} \sur{Toosi}}\email{r.toosi@ut.ac.ir}
+\author[1]{\fnm{Zahra} \sur{Ebrahimian}}\email{z.ebrahimian@ut.ac.ir}
+\author*[1]{\fnm{Mohammad Ali} \sur{Akhaee}}\email{akhaee@ut.ac.ir}
+
+\affil*[1]{\orgdiv{School of Electrical and Computer Engineering}, \orgname{University of Tehran}, \orgaddress{\street{College of Engineering}, \city{Tehran}, \country{Iran}}}
+
+\affil[2]{\orgdiv{Faculty of Electrical Engineering}, \orgname{K. N. Toosi University of Technology}, \orgaddress{\city{Tehran}, \country{Iran}}}
+
+\affil[3]{\orgdiv{Department of Computer Engineering}, \orgname{Faculty of Engineering, Golestan University}, \orgaddress{\city{Gorgan}, \country{Iran}}}
+
+
+%%==================================%%
+%%abstract %%
+%%==================================%%
+
+\abstract{The visibility of brand logos on packaging plays a crucial role in shaping consumer perception, directly influencing the product's success. Analyzing eye-tracking data across large groups of individuals is both costly and time-intensive. Therefore, there is a growing need to develop models that capture human visual attention behavior effectively. This paper introduces a framework, that models attention in human visual system to brand logos on packaging designs, to measure brand logo visibility and its impact on consumer perception. The proposed method consists of three main steps. The first step leverages YOLOv8 for logo detection across well-known datasets. The second step involves introducing a novel saliency prediction model tailored for the packaging context to model human visual attention. In the third step, by integrating logo detection with a saliency map generation, the framework provides a brand attention score. The effectiveness of the proposed method is assessed module by module, ensuring a thorough evaluation of each component. Comparing logo detection and saliency map prediction with SOTA models shows the superiority of the proposed methods. To investigate the robustness of the proposed brand attention score, we collected a dataset to examine previous psychophysical hypotheses related to brand visibility. The results show that the brand attention score is in line with all previous studies. Also, we introduced seven new hypotheses to check the impact of position, orientation, and other visual elements on brand attention. This research marks a stride in the intersection of cognitive psychology, computer vision, and marketing.\footnote{The source code and dataset are available at: \url{https://github.com/Arhosseini77/Brand_Attention}}}
+
+
+\keywords{Brand Attention, Neuro Marketing, Logo Detection, Saliency Prediction}
+
+
+\maketitle
+
+\section{Article Highlights}
+\begin{itemize}
+    \item Provides a framework to assess logo prominence on packaging and its impact on viewer focus.
+    \item Introduces a new model to predict where people look in commercials and packaging images.
+    \item Explores 12 consumer insights, including effects of logo position and orientation on visibility.
+\end{itemize}
+
+\section{Introduction}
+\label{introduction}
+
+In today's dynamic business world, having a strong brand presence is crucial. The visibility of the brand is incredibly important for keeping up with consumer trends and staying competitive. Consumers often shape their perceptions of brands by considering factors such as visual attractiveness, functionality, and the social significance they convey, predominantly relying on visual cues \citep{BlochPeter1995}. For companies striving to establish and maintain a strong market presence, the packaging of their products, as an interface between the brand and the consumer, significantly influences the purchasing process \citep{Ampuero_Vila2006}.
+
+The visual appeal of packaging, along with the prominent display of design elements, contributes to creating a lasting impression on the consumer and nurturing brand recognition. As consumers navigate the diverse market landscape, a well-designed package captures attention and effectively conveys the brand's values and identity, playing a key role in influencing the purchasing decision \citep{Méndez2011}.
+
+Several studies in marketing and consumer behavior have emphasized the role of effective packaging design in promoting brand recognition \citep{stewart1995packaging}. A well-designed packaging has been shown to significantly enhance brand awareness, purchase intent, and sales \citep{Shukla2022}. These investigations thoroughly explore various aspects of packaging design, conducting a detailed examination of elements such as packaging's shape, texture, and color \citep{Riaz2019, Dong2018, Rebollar2015, PIQUERASFISZMAN2013328, raheem2014impact}. Additionally, they explore the strategic considerations of precise positioning of design elements such as logos, aiming to uncover the subtle interactions between these factors and their impact on consumer perception and brand recognition.
+
+Recognizing the impact of visual elements in packaging, particularly logos, on shaping brand recognition and recall is crucial \citep{clement2007visual, shimizu2021attention}. This visual aspect influences consumer responses, ultimately playing an important factor in determining the success of a product \citep{riswanto2025visual}. Logo, as a fundamental visual element, plays an essential role in packaging design, significantly influencing how consumers perceive and remember a brand \citep{girard2013role}. A visually appealing package not only captures the consumer's attention but also enhances the visibility of the brand logo. On the flip side, weaknesses in design can hinder logo visibility, diminishing its potential impact on consumer awareness \citep{Krishna2017, Otterbring2013}.
+
+
+Understanding the crucial influence of logo visibility on brand awareness highlights the importance of implementing effective methods to enhance logo visibility. Enhancing logo visibility is linked to understanding its strategic placement on the packaging. The positioning of a logo profoundly impacts its visibility, influencing its interaction with other design elements and resonance with consumers. Thus, it is imperative to focus on optimizing logo placement through strategic positioning on packaging. To this end, implementing advanced machine vision techniques to measure logo visibility becomes crucial to amplifying visibility.
+Identifying the logo's position within an image is the initial stage in assessing logo visibility \citep{hou2023deep}. The pursuit of brand visibility does not conclude with knowing the location of the logo; it extends to understanding the attention it commands within the consumer's visual field. This is where saliency prediction \citep{Borji2012} emerges as a pivotal metric. Saliency prediction involves forecasting the perceptual prominence of the logo within the overall visual composition of packaging. Understanding the saliency prediction of the logo enables us to quantify its presence and visual impact, offering a detailed understanding of how much attention the brand attracts on the visual journey of consumers.
+
+While there have been numerous studies on logo detection and saliency prediction, to the best of our knowledge, there is currently no specialized method for modeling human visual attention specifically for logos on packaging. The proposed method is positioned to provide a comprehensive framework for modeling human attention to brand logos in various packaging scenarios including automated logo detection and a novel saliency prediction algorithm. This approach is crafted to provide businesses with actionable insights aimed at optimizing logo visibility and creating engaging packaging designs that effectively connect with their target audience. It is composed of three key modules. 
+The initial module of our design is brand logo detection,  leveraging the cutting-edge  YOLOv8, a state-of-the-art(SOTA) object detection model developed by Ultralytics~\cite{yolo_ultralytics}. This crucial step helps identify and precisely locate brand logos in visual content. Subsequently, the second module, utilizing a CNN-Transformer-based model generates saliency maps, a crucial element of our methodology. These maps highlight specific regions within the visuals that command the highest visual attention. These insights provide valuable information regarding viewer perception and cognitive responses.
+The third and concluding module efficiently integrates the outcomes of both logo detection and saliency map generation. This integration yields a score that quantifies the attention that the brand logo attracts within packaging or advertising visuals.
+Furthermore, it is noteworthy to mention that this approach has been validated against existing psychophysical studies related to brand logos in packaging. This validation underscores the capability of the model to simulate human visual attention on brand logos within packaging and advertising imagery accurately. Consequently, this positions our model as a tool for investigating unexplored experiments regarding brand logos in packaging and advertising contexts. Through this approach, the proposed model provides a comprehensive analysis of brand visual attention, enabling businesses to make informed decisions to enhance their brand presence and impact.
+Our main contributions are as follows:
+
+\begin{itemize}
+    \item An innovative framework that models human visual attention to brand logos on packaging.
+    
+    \item A new saliency prediction model, specifically designed for advertising images and packaging considering text maps, surpasses SOTA models in saliency prediction.
+
+    \item Introduced A brand attention dataset explores 12 hypotheses from cognitive perspectives.
+    
+    \item Validated the effectiveness of the brand attention score through extensive comparisons with existing psychophysical studies.
+    
+    \item Introduced seven new hypotheses to understand the impact of logo position, orientation, and other design elements on brand visibility.
+\end{itemize}
+
+
+The rest of this work is organized into four sections. Section \ref{Related Works} delves into related work in the field, specifically focusing on optimizing logo placement through eye-tracking, brand logo detection, and saliency map prediction. Section \ref{Description of proposed approaches} outlines the materials, methods, and modeling procedures employed in the research. Section \ref{Experiments and results} is dedicated to discussing the experiments conducted and the results obtained. Finally, section \ref{Conclusion} presents the main conclusions of the work, while proposing future directions and potential enhancements for the introduced architecture.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Related Work
+
+\section{Related Works}
+\label{Related Works}
+
+In this section, we will go through the domain of artificial intelligence (AI) and its applications in the field of marketing, specifically focusing on logo placement design in advertising images and packaging. We will also explore the techniques of brand logo detection and saliency map prediction, discussing their relevance to enhancing brand recognition and optimizing advertising effectiveness.
+
+\subsection{Optimizing Logo Placement with Eye-Tracking}
+
+Neuromarketing, an increasingly influential field of study, uniquely utilizes neuroscience knowledge to directly assess product packaging, eliminating the need to depend on consumers' self-reported preferences \citep{Hubert2008}. By incorporating advanced methodologies like neuroimaging and physiological measurements, neuromarketing employs a more direct and objective approach to assessing consumer responses. This represents a notable shift away from traditional survey-based approaches.
+A key methodology in neuromarketing is eye tracking \citep{alvino2021consumer}, providing a detailed examination of visual attention patterns. By studying where and how consumers focus their gaze, researchers gain valuable insights into elements that capture attention and drive perception, uncovering processes beyond conscious awareness \citep{Maynard2018, Gofman2009}.
+
+Specific parameters govern visual behavior, with fixations playing a central role in this context. Fixations, characterized by eye movement, represent moments when the visual system actively acquires information \citep{Pertzov2009}. Numerous studies exploring eye movements, the attention mechanism, and consumer behavior have consistently emphasized the importance of analyzing fixations based on their frequency and duration \citep{Nagel2011}. By understanding the patterns and characteristics of fixations, researchers gain insights into how individuals allocate their visual attention and engage with stimuli. This knowledge proves particularly valuable in fields such as neuromarketing, where assessing consumer responses relies on a detailed understanding of visual attention dynamics.
+
+Employing eye-tracking techniques, previous researches underscore the critical role of packaging design, investigating the influence of specific attributes like color, shape, and labeling on consumer perceptions of the product\citep{Ares2010}.
+
+Strategic positioning of packaging design components is central to practical marketing efforts \citep{Rettie2000}. Inadequate placement may cause crucial design elements to go unnoticed, impacting product evaluation \citep{Krishna2017, Otterbring2013}.
+An important study reveals a consumer preference for high-power brands when the brand logo is positioned on the upper side of the packaging, contrasting with diminished appeal when placed on the lower side \citep{Riaz2019, Dong2018}. The effectiveness of capturing participants' attention by placing packaging content at the top is emphasized by Rebollar \emph{et al.}\citep{Rebollar2015}.
+Building on existing research, Piqueras-Fiszman \emph{et al.}\citep{PIQUERASFISZMAN2013328} explored the impact of packaging shape and images on consumer attention, with a focus on the logo. Their findings showed that squared-shaped packaging significantly heightened attention toward the logo. Additionally, the study demonstrated the substantial influence of incorporating images on capturing consumer attention. This highlights the complex balance required in packaging design to ensure that attention is not only captured but also sustained, emphasizing the need for strategic placement and thoughtful integration of visual elements to prevent essential components from being marginalized.
+
+\subsection{Brand Logo Detection}
+
+Logo detection, a subfield of object detection, has witnessed substantial advancements over the years. In its initial stages, logo detection heavily relied on manually crafted visual attributes, including the Scale-Invariant Feature Transform (SIFT) and the Histogram of Oriented Gradients (HOG), combined with traditional classification models like Support Vector Machines (SVM)\citep{boia2015elliptical, sahbi2013contextdependent, revaud2012correlation}. However, these approaches faced notable constraints. They were time-consuming because of their region-selective search method using sliding windows. They also struggled to handle different types of logos and were not very efficient at adapting to new situations \citep{hou2023deep}. In recent years, deep learning has emerged as the prevailing paradigm for logo detection. These approaches can be categorized into different strategies, including Region-based Convolutional Neural Network (R-CNN) models and YOLO-based models.
+R-CNN models \citep{girshick2014rich}, Fast R-CNN \citep{girshick2015fastrcnn}, and Faster R-CNN \citep{ren2015fasterrcnn} have made noteworthy contributions to the field of logo detection. Hoi \emph{et al.}\citep{hoi2015logonet} introduced the Deep Logo-DRCN scheme, which investigated various techniques within the field of deep region-based convolutional networks (DRCN) for improved logo detection. Similarly, Oliveira \emph{et al.}\citep{oliveira2016automatic} proposed an automatic graphic logo detection system based on Fast R-CNN, known for its robustness under unconstrained imaging conditions. Their approach involved utilizing transfer learning and data augmentation to train a CNN model, enabling multiple detection of potential regions containing objects. Additionally, Li \emph{et al.}\citep{li2017graphic} developed Faster R-CNN for logo detection, incorporating transfer learning, data augmentation, and clustering to optimize hyper-parameters and anchor precision in the Region Proposal Network (RPN), resulting in a significant improvement in detection accuracy.
+
+Feature Pyramid Networks (FPN) are crucial in addressing the multi-scale problem in object detection\citep{lin2017fpn}. FPN notably enhances small object detection without escalating computational demands. Recent works have employed FPN to improve logo detection. Meng \emph{et al.}\citep{meng2021adaptiverepresentation} proposed OSF-Logo, incorporating the Regulated Deformable Convolution (RDC) module in a specific layer of FPN. This integration allows adaptive adjustments of convolution kernel positions, facilitating geometric adaptations to logos. In addition, Jin \emph{et al}\citep{jin2020openbrands} developed Brand Net, utilizing FPN to extract multi-scale features for logo recognition. To enhance small object detection in the context of logo recognition, FPN have also been integrated into Detection Transformers (DETR) \citep{carion2020endtoend}.  Velazquez \emph{et al.} \citep{velazquez2021logodetection} integrated FPN into DETR, enhancing small object detection. Nevertheless, this approach results in an increased computational load during backward propagation. More recently, Hou \emph{et al.}\citep{hou2021foodlogodet1500} proposed the Multi-Scale Feature Decoupling Network (MFDNet) to distinguish between multiple logo categories. MFDNet incorporates a Balanced Feature Pyramid (BFP) for merging multi-scale features and a Feature Offset Module (FOM) with an anchor region proposal network for the optimal selection of logo features.
+
+Driven primarily by the compelling demand for speed and real-time object detection applications, You Only Look Once (YOLO) was developed \citep{redmon2016yolo}. YOLO models, known as single-stage detectors, have played a central role in revolutionizing object detection for their ability to achieve both accuracy and speed. Early versions of YOLO, such as YOLOv2 \citep{redmon2017yolo9000} and YOLOv4 \citep{bochkovskiy2020yolov4}, set new benchmarks in the field. More recent iterations, including YOLOv7 \citep{wang2023yolov7} and YOLOv8 \citep{yolo_ultralytics}, represent the current SOTA in object detection. YOLO models are widely employed, particularly in the domain of logo detection. Palecek \emph{et al.}\citep{palecek2021logodetection} presented Scaled YOLOv4, outperforming traditional two-stage models such as Faster R-CNN in both speed and accuracy. It achieved a relative improvement of up to 46\%, running up to twice as fast. Notably, logo detectors utilizing YOLOv7 and YOLOv8 remain unexplored, presenting an opportunity for potential improvements in balancing accuracy and speed, potentially reaching the SOTA in logo detection.
+
+
+\subsection{Saliency Map Prediction}
+Saliency prediction in computer vision involves the identification and anticipation of the most significant or salient regions within an image or video frame, likely to capture human attention. This process holds practical utility in various applications.
+CNNs are commonly used for saliency prediction tasks. Kroner \emph{et al.}\citep{kroner2020contextual} introduced an encoder-decoder framework that incorporates several convolutional layers, each set at various dilation rates, to effectively grasp features on multiple scales. Jia \emph{et al.}\citep{jia2020eml} used deep CNN models to extract more useful visual features for saliency prediction. TempSal \citep{aydemir2023tempsal} enables sequential saliency map generation through a temporal information-based model, astutely exploiting human temporal attention patterns. The incorporation of transfer learning principles amplifies the potential of CNN models in the domain of saliency prediction \citep{kummerer2016deepgaze, linardos2021deepgaze}.
+The fusion of RNN with CNN represents a hybrid approach in the field of both image and video saliency prediction, as introduced by Droste \emph{et al.}\citep{droste2020unified}.
+
+Researchers have been inspired by the achievements of attention in natural language processing (NLP) and have started applying these models to computer vision tasks such as saliency prediction. Cao \emph{at al.}\citep{cao2020aggregated} proposed a saliency prediction method named VGG-SSM. Their pipeline consists of three parts: feature extraction, multi-level integration, and a self-attention module. They demonstrated that refining global information from deep layers through a self-attention mechanism, in coordination with fine details in distant portions of a feature map, yields a comprehensive data enhancement process. Additionally, Lou \emph{et al.}\citep{lou2022transalnet} developed a transformer-based method with both DenseNet and ResNet backbones. 
+
+The works mentioned earlier were created for general use, while numerous other works have been suggested specifically for advertising purposes. Lévêque \emph{et al.}\citep{8802989} collected an eye-tracking database of video advertising and evaluated their analysis with SOTA deep learning-based saliency models. Liang \emph{et al.}\citep{liang2021fixation} compiled an eye-tracking dataset comprising 1000 advertising images. Subsequently, they introduced a method that incorporates text features within advertising images, which considers the interaction between text region and pictorial region. Kou \emph{et al.}\citep{10016709} proposed confidence scores fusion for saliency prediction in advertising images, which is helpful to improve the robustness and performance. Another study, conducted by Jiang \emph{et al.}\citep{jiang2022does}, introduces the concept of salient Swin-Transformers. In this work, the researchers initially curated a dataset of e-commerce images for saliency prediction tasks. Subsequently, they proposed a novel multi-task learning framework that demonstrated SOTA performance in e-commerce scenarios.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Proposed Method 
+
+
+
+\section{Proposed Method}
+\label{Description of proposed approaches}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/Schematic/Brand-Attention.pdf}
+    \caption{Overview of the proposed Brand-Attention method}
+    \label{fig:Brand_Attention_model}
+\end{figure}
+
+The primary aim of our research is to design a system for a comprehensive evaluation of the visual prominence of brand logos within the context of packaging or advertising images. To achieve this objective, the proposed methodology encompasses three closely related main steps as illustrated in \figurename \ref{fig:Brand_Attention_model}. The first module is brand logo detection and is supported by the SOTA object detection model, \textit{YOLOv8}. This module identifies and locates brand logos within the imagery, forming the foundational basis for subsequent analysis. Then, the second module focuses on generating saliency maps, a critical aspect of our approach. The saliency maps illuminate the regions within the image that command the highest degree of visual attention, providing valuable insights into viewer perception and cognition. The final module consolidates the outcomes of the brand logo detection and saliency map generation modules. This approach gives a score that measures how much attention the brand logo gets in the packaging or advertising image. This combination of techniques offers valuable insights for businesses aiming to optimize the visual prominence of their brand logos in marketing materials.
+
+
+
+
+\subsection{Brand Logo Detection}
+
+In the initial stage of the proposed method, our focus lies on brand logo detection. For this task, we employ the YOLOv8 model, specifically trained for logo detection purposes. When presented with an input image $I$ with spatial dimensions $H \times W$ and $C$ color channels, our Logo YOLOv8 model processes this image. The output of this model consists of a $1D$ list of bounding boxes, denoted as $B$, where each bounding box ($b$) is represented as a tuple containing the coordinates $(x_{\min}, y_{\min}, x_{\max}, y_{\max})$
+\begin{equation}
+B = \text{LOGO\_YOLOv8}(I) = [b_1, b_2, \ldots, b_n]
+\end{equation}
+The number of logo boxes detected in the image is represented by $n$. This detection is the first fundamental step in our brand attention system.
+
+\subsection{Saliency Map Prediction}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/Schematic/Saliency_Model_Schematic_green.pdf}
+    \caption{The block diagram of the proposed saliency model.}
+    \label{fig:Saliency_Model_Schematic}
+\end{figure}
+
+Our primary objective in the second stage is to generate saliency maps for images, with a specific focus on advertising and packaging designs. We introduce a novel saliency map prediction model tailored to address the unique requirements of both advertisements and packaging images( \autoref{fig:Saliency_Model_Schematic}). This model is inspired by the TranSalNet network \citep{lou2022transalnet}, with major improvements made to boost its efficiency and performance. One component of the proposed method involves incorporating the influence of text into the saliency map. Previous studies have shown that text is just as important as other visual elements in packaging and advertising. These studies found that text is instrumental in capturing people's attention, and they used eye-tracking data to confirm this \citep{jiang2022does, liang2021fixation}.
+
+In the proposed model, we initiate the process by detecting text within the image. To achieve this, the text detection model proposed by Lia et. al., \citep{liao2022textdetect} is employed, which outputs a text map. The text map and the original image are subsequently processed through a CNN decoder, resulting in multiple feature maps. To efficiently capture and process information from feature maps, we apply transformation through Transformer encoders. This enables the model to consider complex relationships and dependencies within visual content. To ensure a seamless integration of these elements, we introduce a pivotal component of the model: the \textit{Fusion Block}. This block is strategically designed to merge the feature maps derived from both the text map and the original image. By doing so, it enables the simultaneous utilization of visual and text-map features, thereby enhancing the overall interpretative capabilities of the proposed model.
+After the fusion block, we use a CNN decoder, which is supported by skip connections coming from the encoder section. This integrated process ensures the restoration of long-range context-enhanced feature maps obtained from the fusion block. These enhanced feature maps serve as the foundation for constructing the final saliency map, capturing the regions of the image that attract the most visual attention.
+Figure~\ref{fig:Saliency_Model_Schematic} illustrates the proposed saliency model, providing a visual representation of its architecture and the various components that comprise our refined saliency map prediction system. As depicted, the model comprises five principal components, each of which will be explained in more detail in subsequent sections of this paper.
+
+
+
+\subsubsection{Text Detector}
+
+We employ the cutting-edge DBNet++ network \citep{liao2022textdetect}, which has emerged as a front-runner in the domain of text detection, consistently achieving SOTA accuracy across a spectrum of five scene text detection benchmarks. These benchmarks cover a diverse range of challenges, from handling horizontal and multi-oriented text to curved text, demonstrating the versatility and performance of DBNet++.
+The DBNet++ operates on images with spatial dimensions of $H \times W$ and $C$ channels, allowing it to accurately identify text regions within these images. By deploying this innovative network, we can precisely extract and isolate text from non-textual information, ultimately generating text maps.
+Given an input image \(I \in \mathbb{R}^{H \times W \times C}\), the DBNet++ detects text regions denoted as $R$. As a consequence, a text map, denoted as \(t_{\text{map}} \in \mathbb{R}^{H \times W \times C},\) is generated as follows:
+
+
+\begin{equation}
+t_{\text{map}}(x, y, c) = 
+\begin{cases}
+   I(x, y, c) & \text{if } (x, y, c) \in \text{R} \\
+   0 & \text{otherwise}
+\end{cases}
+\end{equation}
+
+\subsubsection{CNN Encoder}
+A CNN encoder is designed as our feature extractor. The primary objective of this CNN encoder is to extract essential features from both the image and the text-map while ensuring that the spatial information is distinctly preserved. To achieve this, three sets of convolutional layers are used, each designed to capture features at different spatial scales. Specifically, we extract feature maps with spatial dimensions of \((w/8, h/8)\), \((w/16, h/16)\), and \((w/32, h/32)\). For the image and text-map image feature extraction, the ResNet-50 architecture is used \citep{he2016Resnet}. This backbone is efficient, using fewer parameters than deeper architectures. It balances depth and performance, effectively extracting detailed features for saliency prediction \citep{lou2022transalnet}.
+
+\subsubsection{Transformer Encoder}
+After the initial CNN Encoder stage, which focuses on enhancing long-range and contextual information within our data, we designed three distinct transformer encoders to efficiently capture and process this enriched information. In the proposed pipeline, transformer encoders are integrated to handle the unique characteristics of both original images and text-maps. Specifically, three sets of multi-scale feature maps, denoted as $i_1$, $i_2$, and $i_3$, are derived from the image data. These sets have spatial dimensions of $(w/32, h/32)$, $(w/16, h/16)$, and $(w/8, h/8)$, respectively. Each set is then fed into its respective transformer encoder. To adapt the input size of the transformer encoder and reduce computational complexity, we employ $1 \times 1$ convolution layers (conv1$\times$1) with a stride of one. These convolution layers are applied to the input tensors, including $i_1$, $i_2$, and $i_3$, to decrease their channel dimensions while preserving spatial dimensions. The conv1$\times$1 operation specifically reduces the dimensions of $i_1$, $i_2$, and $i_3$ from 2048, 1024, and 512 to 768, 768, and 512, respectively. This dimension reduction streamlines the data for subsequent processing within the transformer encoder, aligning it with the required input dimensions and optimizing computational efficiency.
+Likewise, the textual components of the data, denoted as $t_1$, $t_2$, and $t_3$, undergo dimension reduction through conv1$\times$1 layers employing the same filter size and stride. This process ensures their alignment with the reduced dimensions of the visual components.
+
+To facilitate position awareness and optimize the transformer encoders for effective processing of spatial information within these feature maps, we integrate position embeddings (PE) \citep{dosovitskiy2021POS} into the input before feeding it into the transformer encoders.
+Each transformer encoder in the proposed model consists of two identical layers featuring Multi-Head Efficient Attention (MEA) \citep{shen2021efficient} and multi-layer perceptron (MLP) blocks. Notably, the model's design deviates from Transalnet regarding the number of heads and layers in each transformer encoder. Specifically, transformer encoders employ one efficient attention head and a 2-layer MLP. These tailored configurations are designed to meet the specific requirements of our model, ensuring the efficient processing of the enriched feature maps.
+Additionally, the MLP block in each transformer encoder consists of two layers with a GELU activation function. Layer normalization (LNorm) and residual connections are applied before and after each block, ensuring stable and effective feature processing.
+
+The introduced methodology distinguishes itself through the adoption of efficient attention, as proposed by Shen \emph{et al.}\citep{shen2021efficient}, diverging from the conventional self-attention mechanism. 
+Traditional self-attention is mathematically represented as
+\begin{equation}
+s(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
+\end{equation}
+In this formula, \(Q\), \(K\), and \(V\) are the query, key, and value vectors, while \(d_k\) is the embedding dimension. However, this approach is limited by its \(O(N^2)\) computational complexity, which presents major challenges when processing high-resolution images.
+
+
+
+Efficient attention, on the other hand, optimizes this process by normalizing the keys and queries before their interaction. Represented as,
+\begin{equation}
+E(Q, K, V) = \rho_q(Q) (\rho_k(K)^T V)
+\end{equation}
+where \(\rho_q\) and \(\rho_k\) are normalization functions. This approach addresses the redundancy in the context matrix generation of standard self-attention. It reduces the computational complexity to \(O(d^2n)\), with a memory complexity of \(O(dn + d^2)\), assuming \(d_v = d\) and \(d_k = d/2\). Here, \( d \) represents the embedding dimension.
+This model's efficient attention mechanism prioritizes a comprehensive understanding of the input feature, avoiding the computation of pairwise similarities. By treating keys as attention maps \(k_j^T\) and focusing on semantic information rather than positional similarities, it achieves a significant computational efficiency improvement without sacrificing representation richness. The diagram depicting the efficient attention mechanism discussed above is presented in Figure~\ref{fig: normal and efficient attention} \citep{shen2021efficient}.
+
+
+\begin{figure}[!ht]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{figures/Schematic/efficient_attention1.pdf}
+        \caption{Dot-Product Attention}
+        \label{subfig:model1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{figures/Schematic/efficient_Attention2.pdf}
+        \caption{Efficient Attention}
+        \label{subfig: model2}
+    \end{subfigure}
+
+    \caption{Architecture of dot-product and efficient attention\citep{shen2021efficient}}
+    \label{fig: normal and efficient attention}
+\end{figure}
+
+It can be summarized that for a given sample input $m$ consisting of $t_1$ to $t_3$ (representing textual content) and $i_1$ to $i_3$ (representing image-based features), the transformer encoder process can be mathematically described as follows:
+\begin{equation}
+z_{0} = \text{conv}_{1\times 1}(m) \oplus \text{PE}
+\end{equation}
+\begin{equation}
+z^{'}_{l} = MEA(\text{LNorm}(z_{l-1}) \oplus z_{l-1})
+\end{equation}
+\begin{equation}
+z_l = \text{MLP}(\text{LNorm}(z^{'}_l) \oplus z^{'}_l)
+\end{equation}
+where \(z_l\) represents the output feature maps of the \(l\)-th layer in the transformer encoder. The feature maps that go through transformer encoders 1, 2, and 3 are contextually enhanced and are referred to as \(i^{*}_j\) for \(j=1\) to 3 for image and \(t^{*}_j\) for \(j=1\) to 3 for text map image.
+
+
+\subsubsection{Fusion Block}
+After generating enhanced visual features for the image and text map image, it is imperative to merge these features effectively. The proposed fusion process involves assigning weights to the visual and textual modalities. We introduce weighting factors, denoted as $\alpha$, which determine the influence of visual and textual data, respectively.
+\begin{equation}
+i_{f_j}^{*} = \sigma(\alpha) \cdot i_j^{*} + (1 - \sigma(\alpha)) \cdot t_j^{*}
+\end{equation}
+In this equation, \(i_f^{*j}\) represents the final feature representation after the fusion process. The selection of the \(\alpha\) parameter is of paramount importance since it governs the equilibrium between the visual and textual modalities. In the proposed model, we treat \(\alpha\) as a learnable parameter, enabling the model to determine the optimal value for this factor. This dynamic approach allows the model to adapt and effectively combine visual and textual information based on the unique demands of the task at hand, thereby enhancing the overall performance and versatility of the model. To ensure that \(\alpha\) remains within the valid range [0, 1] after optimization, a sigmoid function is applied. The sigmoid function, denoted as \(\sigma(\cdot)\), maps real-valued inputs to the interval [0, 1], making it an ideal choice for constraining the \(\alpha\) parameter.
+
+\subsubsection{CNN Decoder}
+The CNN decoder plays a key role in integrating and restoring long-range context-enhanced feature maps obtained from the fusion block. Its primary objective is to reconstruct the saliency maps while restoring the original image resolution. 
+The proposed CNN decoder is designed to facilitate efficient and effective pixel-level classification, enabling the prediction of saliency maps. Within the network, several key operations are performed to enhance the model's performance. After each $3\times 3$ convolution operation (\texttt{Conv3$\times$3}), the batch normalization (\texttt{BNorm}) is applied to promote convergence. Besides, the activation function ReLU is used in all blocks, with Sigmoid employed in the final block.
+After initial down-sampling of the input image to a 32-scale by the encoder network, a pivotal process in the CNN Decoder involves a 2-scale up-sampling. This method uses nearest-neighbor interpolation and happens in the first five decoding stages. It creates the saliency map that has the same size as the original input image.
+
+To improve the feature map's long-range and multi-scale context during the decoding process, the up-sampled feature map is fused with the output from the fusion blocks, denoted as \(i_{f_j}^{*}\) for \(j = 1\) to \(3\). This fusion is acquired through the corresponding skip-connection, using an element-wise product operation, and ensures that the model benefits from comprehensive contextual information at different scales.
+The operations within each CNN decoder block can be represented as follows. 
+\begin{equation}
+O_i = 
+\begin{cases}
+i_{f_1}^{*}, &  i = 1 \\
+\text{ReLU}\left(\text{2X\_Upsample}(O_{i-1}) \cdot i_{f_i}^{*}\right), & i = 2, 3 \\
+\text{2X\_Upsample}(O_{i-1}), & i = 4, 5, 6
+\end{cases}
+\end{equation}
+\begin{equation}
+O_i^{*} = \text{ReLU}\left(\text{BNorm}(\text{Conv}_{3\times3}(O_i))\right), \quad \text{for } i : 1 \text{ to } 6
+\end{equation}
+\begin{equation}
+S = \text{Sigmoid}(\text{Conv}_{3\times3}(O_6^{*}))
+\end{equation}
+where \(O_i\) refers to the output of the \(i\)-th decoding stage before the convolution operation, \(O_i^*\) refers to the output after applying the convolution, batch normalization, and ReLU operations, and \textbf{S} represents the final saliency map predicted by the proposed model.
+
+\subsubsection{Loss Function and Evaluation Metrics}
+Drawing inspiration from established conventions in the domain of saliency map prediction models and referencing other saliency prediction frameworks \citep{droste2020unified,che2020gaze, lou2022transalnet}, our model employs a composite loss function. This function combines three metrics: Kullback-Leibler divergence (KL), Linear Correlation Coefficient (CC) and Mean Squared Error (MSE) loss.
+
+Let \(g^{s}\) represent the ground truth of the saliency map, \(g^{f}\) denote the ground truth of the saliency fixation map, and \(S\) denote the network's predicted saliency map. The overarching loss function is defined as:
+\begin{equation}
+\begin{aligned}
+\text{Loss} = & \lambda_1 \cdot \text{KL}(g^{s}, S)
+             & + \lambda_2 \cdot \text{CC}(g^{s}, S) 
+             & + \lambda_3 \cdot \text{MSELoss}(g^{s}, S)
+\end{aligned}
+\end{equation}
+where each component is elucidated as follows:
+\begin{itemize}
+    \item \textbf{KL divergence}: A standard measure of dissimilarity between probability distributions, is expressed as:
+    \begin{equation}
+        \text{KL}(g^{s}, S) = \sum_{i=1}^{n} g^{s}_i \log\left(\epsilon + \frac{S_i}{g^{s}_i + \epsilon}\right)
+    \end{equation}
+    Here, \(\epsilon\) serves as a regularization constant, set to \(2.2 \times 10^{-16}\) as used in previous studies\cite{lou2022transalnet}.
+
+    \item \textbf{CC}: CC is defined as the ratio of the covariance between \(g^{s}\) and \(S\) to the product of their standard deviations, signifying similarity. The formula is presented as:
+    \begin{equation}
+        \text{CC}(g^{s}, S) = \frac{\text{cov}(g^{s}, S)}{\sigma(g^{s}) \cdot \sigma(S)}
+    \end{equation}
+    Here, \(\sigma(.)\) designates the standard deviation, and \(\text{cov}(.)\) stands for the covariance.
+    
+
+\end{itemize}
+
+The objective of this loss function is to minimize the KL and MSELoss while concurrently maximizing the value of CC. This dynamic balance is achieved through the fine-tuning of the coefficients \(\lambda_i\), where \(i\) ranges from 1 to 3.
+By employing the Optuna framework \citep{optuna_2019}, we have systematically determined the values for these coefficients to achieve optimal training.
+Based on the achieved experiments, these coefficients have been chosen to optimize the model's performance, with a specific focus on reducing KL while concurrently enhancing CC, aligning closely with the intended outcome of the proposed model.
+
+In our comprehensive evaluation framework, we use three additional metrics—Similarity (SIM), Normalized Scan-path Saliency (NSS) and Area under ROC Curve(AUC)—to provide an assessment of the model's performance. While these metrics are not directly embedded within the training loss function, they play an important role in the evaluation phase.
+\begin{itemize}
+    \item \textbf{SIM}: SIM gauges the linear relationship between the elements of \(g^{s}\) and \(S\), where the minimum value at each position is summed to calculate the coefficient:
+    \begin{equation}
+        \text{SIM}(g^{s}, S) = \sum_{i=1}^{n} \min(g^{s}_i, S_i)
+    \end{equation}
+
+    
+    \item \textbf{NSS}: NSS measures the similarity between the predicted \(S\) and \(g^{f}\) by comparing the fixations with the saliency map values:
+    \begin{equation}
+    NSS(g^{f}, S) = \frac{1}{\sum_i (g^{f}_i)} \sum_i \left(\frac{S_i - \mu(S)}{\sigma(S)}\right)g^{f}_i
+    \end{equation}  
+    where, \(\sigma(.)\) designates the standard deviation, and \(\mu(.)\) , \(\text{cov}(.)\) stands for the mean and covariance, respectively.
+\end{itemize}
+
+
+\subsection{Brand-Attention Score}
+After localizing brand bounding boxes (B) and generating the saliency maps for both packaging and advertising images, we can quantitatively assess the prominence of the brand within an image. The intuition involves converting the saliency map image into a list of pixel probabilities, ensuring that the cumulative probability sums to 1. Subsequently, we calculate the sum of probabilities associated with pixels contained within the image region.
+
+\begin{algorithm}
+\SetAlgoNlRelativeSize{0}
+\KwData{B, S}
+\KwResult{Brand-Attention Score}
+S[S \textless Threshold] = 0 \;
+
+SNorm = S / sum(S) \;
+
+\If{$\mathbf{B}$ is None}{
+    \KwRet 0 
+}
+\Else{
+    Brand-Attention Score = 0 \;
+    
+    \For{b in $\mathbf{B}$}{
+        $x_{\text{min}}, y_{\text{min}}, x_{\text{max}}, y_{\text{max}}$ = b \;
+        
+        \For{y in range($y_{\text{min}}, y_{\text{max}}+1$)}{
+            \For{x in range($x_{\text{min}}, x_{\text{max}}+1$)}{
+                Brand-Attention Score += SNorm[x, y] \;
+            }
+        }
+    }
+    \KwRet Brand-Attention Score \;
+}
+\caption{Brand-attention score calculation}
+\label{algo:BrandAttentionScore}
+\end{algorithm}
+
+
+The pseudo-code for calculating the brand attention score is presented in Algorithm~\ref{algo:BrandAttentionScore}. This pseudo-code outlines the procedure for computing the brand attention score based on the provided saliency map and bounding boxes. It involves removing saliency map values below a threshold, normalizing the remaining values to probabilities, and then calculating the score by summing the normalized values within the specified bounding box regions.
+Using the saliency map and this algorithm, we can obtain an attention score for every object or text (not only the brand logo) for which bounding boxes are provided or selected by users.
+
+
+\section{Experiments and results}\label{Experiments and results}
+In this section, we go through the datasets, training setup, and result analysis for both logo detection and saliency prediction. Moreover, the outcomes underscore the enhanced efficacy of the proposed technique compared to leading-edge methods across diverse evaluation metrics. The following part introduces the brand attention module and the proposed dataset. The brand attention module is then validated based on earlier hypotheses, with results thoroughly analyzed using feedback from human participants. The section concludes by proposing and discussing new hypotheses regarding brand visibility in packaging. The computational tasks described in this section were executed using the PyTorch framework on a workstation equipped with an Intel Core i-9 CPU and an NVIDIA GeForce RTX3090 GPU.
+
+\subsection{Logo Detection}
+\subsubsection{Datasets}
+
+Recent advances in computer vision have led to the development of specialized datasets tailored to logo detection. In particular, the growing demand for robust logo recognition in packaging applications has motivated our selection of datasets that capture the variations in packaging design and branding \citep{hou2023deep}.
+Our research focuses on two logo detection datasets: FoodLogoDet-1500 \citep{hou2021foodlogodet1500} and LogoDet-3K \citep{wang2022logodet3k}, selected for their unique attributes that make them well-suited for the complexities of logo detection in product packaging. While these well-known datasets might initially seem limited in terms of packaging and brand design diversity, a closer examination reveals significant variation. As shown in Figure \ref{fig:three_datasets}, LogoDet-3K comprises nine super categories with numerous sub-categories, while FoodLogoDet-1500 includes 63 sub-categories covering a wide range of packaging types. A summary of the selected datasets is provided in Table \ref{tab:dataset-summary}, and Figure \ref{fig:three_datasets} presents sample images from these datasets.
+
+\begin{table}[ht]
+    \centering
+    \caption{Summary of selected logo detection datasets}
+    \label{tab:dataset-summary}
+    \begin{tabular}{c|c|c|c}
+    \hline
+    \textbf{Dataset} & \textbf{\#Images} & \textbf{\#Objects} & \textbf{\#Logos} \\
+    \hline
+    FoodLogoDet-1500 & 99,768 & 145,400 & 1,500 \\
+    LogoDet-3K & 158,652 & 194,261 & 3,000 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+
+\begin{figure}[!ht]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{figures/LogoDetection/foodlogo_SAMPLE.pdf}
+        \caption{FoodLogoDet-1500}
+        \label{subfig:dataset1}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{figures/LogoDetection/logodet_SAMPLE.pdf}
+        \caption{LogoDet-3K}
+        \label{subfig:dataset2}
+    \end{subfigure}
+
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{figures/Saliency_map/ECSAL_SAMPLE.pdf}
+        \caption{SalECI}
+        \label{subfig:dataset3}
+    \end{subfigure}
+
+    \caption{Sample images from FoodLogoDet-1500, LogoDet-3K, and SalECI datasets}
+    \label{fig:three_datasets}
+\end{figure}
+
+
+
+\subsubsection{Training Setup}
+The dataset used for logo detection contains numerous classes, which are not essential for our specific case. Therefore, all classes have been aggregated into one for logo detection. Due to the inability of the proposed model to converge on large-scale datasets, a two-stage fine-tuning process has been implemented. In the first stage, the \textit{small} version of the YOLOv8 model is fine-tuned, initially pre-trained on the COCO dataset, over the FoodLogoDet-1500 dataset. This initial fine-tuning serves as a crucial step to help the model adapt to the characteristics of the data and mitigate convergence issues. The fine-tuning process in this stage is carried out using the Adam optimizer across 100 epochs, with a batch size set to 32, and involves specifying a learning rate of $10^{-2}$ and a momentum of $0.9$.
+During the second stage, we continued the fine-tuning process on both the FoodLogoDet-1500 and the larger LogoDet-3k datasets. This approach ensures that the model further adapts to a broader range of data patterns. The second-stage fine-tuning is conducted for 50 epochs with a batch size of 64, using the same hyperparameters as in the first stage. This two-stage fine-tuning strategy has proven effective in addressing the model convergence challenge. The entire process takes approximately 60 hours to complete.
+
+
+\subsubsection{Method Comparison}
+We compared the proposed logo detection model with several SOTA methods. In addition to YOLOv7 \citep{wang2023yolov7} and MFDNet \citep{hou2021foodlogodet1500}, we also evaluated Faster RCNN \citep{ren2015fasterrcnn} and DETR \citep{jin2020openbrands} to provide a comprehensive performance comparison. Results are shown in Table \ref{table:logo1} and Table \ref{table:logo2}. As can be observed, YOLOv8 significantly outperforms the other methods across various metrics, such as mAP${50}$, mAP${50-95}$, precision, and recall, in both stages of evaluation. 
+\begin{table}[!ht]
+\centering
+\caption{Metrics on models fine-tunned over Foodlogo-det-1500}
+\begin{tabular}{l|cccc}
+\hline
+\textbf{Method} & \textbf{$mAP_{\substack{50}}$} & \textbf{$mAP_{\substack{50-95}}$} & \textbf{Precision} & \textbf{Recall} \\
+\hline
+\textbf{Faster RCNN~\cite{ren2015fasterrcnn}}   & 0.821 & 0.595 & 0.778 & 0.753 \\
+\textbf{DETR~\cite{jin2020openbrands}}          & 0.849 & 0.640 & 0.806 & 0.781 \\
+\textbf{MFDNet}~\cite{hou2021foodlogodet1500}   & 0.879 & 0.635 & 0.836 & 0.811 \\
+\textbf{YOLOv7~\cite{wang2023yolov7}}     & 0.932 & 0.698 & 0.90 & 0.866 \\
+\textbf{YOLOv8~\cite{yolo_ultralytics}}   & \textbf{0.936} & \textbf{0.704} & \textbf{0.904} & \textbf{0.879}  \\
+\hline
+\end{tabular} \label{table:logo1}
+\end{table}
+
+
+\begin{table}[!ht]
+\centering
+\caption{Metrics on models pretrained on FoodLogo and fine-tuned over FoodLogoDet-1500+LogoDet3k dataset.}
+\begin{tabular}{l|cccc}
+\hline
+\textbf{Method} & \textbf{$mAP_{\substack{50}}$} & \textbf{$mAP_{\substack{50-95}}$} & \textbf{Precision} & \textbf{Recall} \\
+\hline
+\textbf{Faster RCNN~\cite{ren2015fasterrcnn}} & 0.80 & 0.57 & 0.76 & 0.74 \\
+\textbf{DETR~\cite{jin2020openbrands}}          & 0.85 & 0.63 & 0.80 & 0.78 \\
+\textbf{MFDNet~\cite{hou2021foodlogodet1500}}     & 0.87 & 0.62 & 0.82 & 0.80 \\
+\textbf{YOLOv7~\cite{wang2023yolov7}}            & 0.88 & 0.61 & 0.84 & 0.81 \\
+\textbf{YOLOv8~\cite{yolo_ultralytics}}          & \textbf{0.94} & \textbf{0.71} & \textbf{0.91} & \textbf{0.88} \\
+\hline
+\end{tabular} 
+\label{table:logo2}
+\end{table}
+
+
+
+
+\subsection{Saliency Map Prediction}
+\subsubsection{Dataset}
+In the domain of saliency map prediction tasks, various general-purpose datasets, including SALICON \citep{jiang2015salicon}, CAT2000 \citep{borji2015cat2000}, MIT1003 \citep{judd2009learning}, and MIT300 \citep{judd2012benchmark} have been established. However, this paper uniquely centers its focus on commercial and advertisement images. To address this specific focus, we leverage the Saliency E-commerce Images (SalECI) dataset introduced by Jiang \emph{et al.} \citep{jiang2022does}.
+The SalECI dataset comprises 257,302 fixations obtained through eye-tracking experiments involving 25 subjects. 
+The dataset comprises 972 e-commerce images, each paired with corresponding fixation maps and text boundaries. This dataset acts as an important tool for exploring saliency within the realm of commercial and advertising stimuli.
+
+
+\subsubsection{Training Setup}
+The proposed method was trained over the SalECI dataset \citep{jiang2022does} using a step learning rate scheduler with a step size of 4 and a gamma value of 0.1. The initial learning rate was set to $5 \times 10^{-4}$, and weight decay was applied at a rate of $10^{-4}$. The Adam optimizer is used for training.
+Additionally, the optimal values for the loss function weighting coefficients, \(\lambda_i\), were determined to be \(\lambda_1 = 10\), \(\lambda_2 = -3\), \(\lambda_3 = 5\). The initial starting value for \(\alpha\) was set at 0.5, and it dynamically adjusts to 0.659 during the training process.
+
+
+\begin{table}[!ht]
+    \centering
+    \caption{Comparing the saliency prediction accuracy for the proposed and nine other SOTA methods over SalECI. \#Param indicates the number of parameters in the model.}
+    \begin{adjustbox}{max width=1\textwidth} 
+        \begin{tabular}{c|c|ccccc}
+            \hline
+            \textbf{Method} & \textbf{\#Param} & \textbf{CC $\uparrow$} & \textbf{KL $\downarrow$} & \textbf{AUC $\uparrow$} & \textbf{NSS $\uparrow$} & \textbf{SIM $\uparrow$}  \\
+            \hline
+            Contextual Encoder-Decoder (CEC)~\cite{kroner2020contextual} & 20M  & 0.459$\pm$0.136 & 1.1346$\pm$0.23  & 0.76$\pm$0.066 & 0.925$\pm$0.268 & 0.373$\pm$0.06  \\
+            DeepGazeIIE~\cite{linardos2021deepgaze}                    & 104M & 0.561$\pm$0.124 & 0.995$\pm$0.215  & 0.842$\pm$0.055 & 1.327$\pm$0.318 & 0.399$\pm$0.065  \\
+            UNISAL~\cite{droste2020unified}                              & 4M   & 0.6$\pm$0.15    & 0.768$\pm$0.262  & 0.845$\pm$0.056 & 1.574$\pm$0.522 & 0.514$\pm$0.094  \\
+            EML-Net~\cite{jia2020eml}                                    & 47M  & 0.510$\pm$0.16  & 1.227$\pm$0.903  & 0.807$\pm$0.062 & 1.232$\pm$0.407 & 0.536$\pm$0.103  \\
+            VGGSAM~\cite{cao2020aggregated}                              & 42M  & 0.691$\pm$0.126 & 0.682$\pm$0.259  & 0.815$\pm$0.048 & 1.324$\pm$0.362 & 0.58$\pm$0.091   \\
+            Transalnet~\cite{lou2022transalnet}                           & 72M  & 0.717$\pm$0.061 & 0.873$\pm$0.079  & 0.824$\pm$0.054 & 1.723$\pm$0.203 & 0.534$\pm$0.043  \\
+            VGGSSM~\cite{cao2020aggregated}                              & 43M  & 0.728$\pm$0.121 & 0.599$\pm$0.237  & 0.829$\pm$0.043 & 1.396$\pm$0.359 & 0.611$\pm$0.089  \\
+            Temp-SAL~\cite{aydemir2023tempsal}                           & 242M & 0.719$\pm$0.065 & 0.712$\pm$0.126  & 0.813$\pm$0.077 & 1.768$\pm$0.182 & 0.629$\pm$0.048  \\
+            SSwin transformer~\cite{jiang2022does}                      & -    & 0.687$\pm$0.175 & 0.652$\pm$0.478  & 0.868$\pm$0.072 & 1.701$\pm$0.497 & 0.606$\pm$0.101  \\
+            \textbf{Ours}                                               & 66M  & \textbf{0.75$\pm$0.050} & \textbf{0.578$\pm$0.117} & \textbf{0.892$\pm$0.033} & \textbf{1.89$\pm$0.204} & \textbf{0.645$\pm$0.040}  \\
+            \hline
+        \end{tabular}
+    \end{adjustbox}
+\label{table:saliency_compare}
+\end{table}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/Saliency_map/saliency_compare_model.pdf}
+    \caption{Comparison of the saliency maps of different models over SALECI}
+    \label{fig:saliency_compare}
+\end{figure}
+
+
+\subsubsection {Method Comparison}
+
+\noindent \textbf{Comparisons with SOTA Methods:}
+We compare our approach with ten SOTA saliency prediction models using the SalECI dataset (see Table \ref{table:saliency_compare}). Our method outperforms the competing techniques across all evaluation metrics, including CC, KL, NSS, and SIM, while maintaining a competitive number of parameters. Notably, our model achieves superior performance compared to methods such as Transalnet~\cite{lou2022transalnet}, SSwin Transformer~\cite{jiang2022does}, and Temp-SAL~\cite{aydemir2023tempsal}, thereby establishing a new SOTA for commercial saliency prediction.
+
+\vspace{5pt}
+
+\noindent \textbf{Qualitative Results:}
+Figure \ref{fig:saliency_compare} illustrates the visual quality of the predicted saliency maps. Our model's predictions are notably closer to the ground truth when compared to other leading methods like Temp-SAL~\cite{aydemir2023tempsal} and SSwin Transformer~\cite{jiang2022does}, further validating the quantitative improvements demonstrated in Table \ref{table:saliency_compare}.
+
+
+\noindent \textbf{Efficiency Analysis:}
+Our proposed model achieves higher efficiency than existing SOTA methods by integrating optimized attention mechanisms with fewer heads and layers, reducing computational complexity while maintaining superior performance. Despite incorporating a text detector and fusion block, our model maintains a lower parameter count than Transalnet and significantly reduces FLOPs, memory usage, and model size.  
+As shown in Table~\ref{tab:efficiency}, our model achieves the lowest FLOPs, smallest model size, reduced memory usage, and fastest inference time, making it highly efficient and well-suited for real-world applications. These results emphasize the effectiveness of our architectural improvements in enhancing saliency prediction for commercial images.
+
+\begin{table}[!ht]
+    \centering
+    \caption{Efficiency and Complexity Comparison across various saliency prediction SOTA methods.}
+    \label{tab:efficiency}
+    \begin{adjustbox}{max width=1\textwidth}
+        \begin{tabular}{l|ccccc}
+            \hline
+            \textbf{Method} & \textbf{FLOPs (G)} & \textbf{Model-Params (M)} & \textbf{Model-Size (MB)} & \textbf{Memory-Usage (MB)} & \textbf{Inference-time (MS)} \\ \hline
+            Temp-SAL~\cite{aydemir2023tempsal}       & 35.81  & 116.21 & 443.30 & 679.67 & 24.04 \\
+            DeepGazeIIE~\cite{linardos2021deepgaze}     & 43.775 & 104.05 & 396.91 & 7167.92 & 536.50 \\
+            Transalnet~\cite{lou2022transalnet}         & 25.47  & 71.98  & 274.59 & 377.34 & 14.368 \\
+            \textbf{Ours}                              & \textbf{24.30}  & \textbf{66.21}  & \textbf{252.56} & \textbf{333.63} & \textbf{13.036} \\ \hline
+        \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+
+
+\subsubsection {Ablation Study}
+
+\noindent \textbf{Effect of Pre-trained Feature Extractor:}
+We conducted an ablation study to examine the effect of using a pre-trained feature extractor. Three training strategies were compared: training from scratch (without pre-trained weights), using pre-trained weights with frozen parameters, and fine-tuning a pre-trained feature extractor during training. As shown in Table~\ref{tab:ablation_pretrained}, the model performs best when fine-tuning is applied, while freezing still offers improvements over training from scratch.
+
+\begin{table}[h]
+    \centering
+    \caption{Impact of the Pre-trained Feature Extractor}
+    \label{tab:ablation_pretrained}
+    \begin{tabular}{lcccc}
+        \hline
+        \textbf{Training Strategy} & \textbf{CC $\uparrow$} & \textbf{KL $\downarrow$} & \textbf{NSS $\uparrow$} & \textbf{SIM $\uparrow$} \\ \hline
+        Without pre-trained weights     & 0.648 & 0.772  & 1.551 & 0.549 \\
+        Pre-trained (frozen)             & 0.738 & 0.5814 & 1.840 & 0.627 \\
+        Pre-trained (fine-tuned)         & \textbf{0.750} & \textbf{0.578}  & \textbf{1.890} & \textbf{0.645} \\ \hline
+    \end{tabular}
+\end{table}
+
+
+\noindent \textbf{Effect of Using Text Feature Map:}
+We carried out an experiment comparing the model without text features against our full model with text feature maps. Table~\ref{tab:ablation_text_feature} shows that incorporating the text feature map improves performance across all metrics.
+
+\begin{table}[h]
+    \centering
+    \caption{Effect of Using Text Feature Map}
+    \label{tab:ablation_text_feature}
+    \begin{tabular}{lcccc}
+        \hline
+        \textbf{Method} & \textbf{CC $\uparrow$} & \textbf{KL $\downarrow$} & \textbf{NSS $\uparrow$} & \textbf{SIM $\uparrow$} \\ \hline
+        Ours (no text feature map) & 0.721 & 0.696 & 1.860 & 0.624 \\
+        Ours                      & \textbf{0.750} & \textbf{0.578}  & \textbf{1.890} & \textbf{0.645}  \\ \hline
+    \end{tabular}
+\end{table}
+
+\vspace{5pt}
+
+\noindent \textbf{Effect of Trainable Fusion Weight (\(\alpha\)):}
+The fusion weight \(\alpha\) balances visual and text features. Fixed \(\alpha\) values may not capture the varying importance of these modalities. Allowing \(\alpha\) to be learnable lets the model adaptively adjust this balance, leading to improved performance. Table~\ref{tab:ablation_alpha} shows that the learnable \(\alpha\) outperforms fixed values.
+
+
+\begin{table}[h]
+    \centering
+    \caption{Effect of \(\alpha\) in the Fusion Block}
+    \label{tab:ablation_alpha}
+    \begin{tabular}{lcccc}
+        \hline
+        \textbf{\(\alpha\) Value} & \textbf{CC \(\uparrow\)} & \textbf{KL \(\downarrow\)} & \textbf{NSS \(\uparrow\)} & \textbf{SIM \(\uparrow\)} \\ \hline
+        0.5      & 0.713 & 0.636 & 1.760 & 0.608 \\
+        0.6      & 0.720 & 0.620 & 1.810 & 0.617 \\
+        0.65     & 0.726 & 0.612 & 1.809 & 0.614 \\
+        Learnable & \textbf{0.750} & \textbf{0.578}  & \textbf{1.890} & \textbf{0.645} \\ \hline
+    \end{tabular}
+\end{table}
+
+\noindent \textbf{Effect of different terms in Loss function}
+We evaluate various loss combinations using CC, KL, and MSE to study their impact on model performance. Our experiments show that the KL term is essential for saliency prediction, CC further enhances performance, and including MSE improves generalization. Table~\ref{tab:ablation_loss} summarizes the results.
+
+\begin{table}[h]
+    \centering
+    \caption{Effect of Different Loss Term Combinations}
+    \label{tab:ablation_loss}
+    \begin{tabular}{ccc|cccc}
+        \hline
+        \textbf{KL} & \textbf{CC} & \textbf{MSE} & \textbf{CC \(\uparrow\)} & \textbf{KL \(\downarrow\)} & \textbf{NSS \(\uparrow\)} & \textbf{SIM \(\uparrow\)} \\ \hline
+         \(\checkmark\) &             &             & 0.709 & 0.620 & 1.736 & 0.598 \\
+                       & \(\checkmark\) &             & 0.720 & 1.358 & 1.845 & 0.601 \\
+         \(\checkmark\) & \(\checkmark\) &             & 0.725 & 0.632 & 1.810 & 0.628 \\
+         \(\checkmark\) &             & \(\checkmark\) & 0.725 & 0.614 & 1.795 & 0.617 \\
+                       & \(\checkmark\) & \(\checkmark\) & 0.710 & 0.726 & 1.770 & 0.570 \\
+         \(\checkmark\) & \(\checkmark\) & \(\checkmark\) & \textbf{0.750} & \textbf{0.578}  & \textbf{1.890} & \textbf{0.645}  \\ \hline
+    \end{tabular}
+\end{table}
+
+
+
+\subsection{Brand Attention}
+
+In this section, we evaluate the effectiveness of the proposed brand attention module by comparing it with the observations in psychophysical studies. To test the model, we have designed a dataset where each group of images is the same in every way, apart from one particular logo feature it is examining. Wrapping up this section, we introduce some new hypotheses in this field that have not been explored yet.
+
+\subsubsection{Dataset}
+While aiming to validate various hypotheses concerning logo placement and packaging design, we have created a dataset comprising 650 images. This collection is a systematically designed platform for testing various ideas connected to packaging design and how people perceive brands.
+To ensure a rich and varied base for our study, 95\% of the images in this dataset are sourced from the Internet templates, complemented by those generated by DALL-E, an advanced AI image generation tool. Each image has been carefully modified to align with specific research questions, with alterations ranging from subtle logo repositioning to more substantial design transformations.
+Our dataset is organized into 12 hypotheses, each examining different aspects of design and branding. For each hypothesis, we analyze 18 $\pm$ 3 images per hypothesis. In each hypothesis image set, all logo characteristics are fixed, except the one under experiment. This setup provides us with an in-depth insight into the influence of packaging design and logo placement on brand perception.
+
+
+\subsubsection{Previous Hypothesises Analysis}
+We evaluate the effectiveness of our brand attention model by comparing its output to data from human observers who have studied logo attention. This comparison involves aligning the model's predictions with findings from psychophysical studies, ensuring its accuracy in predicting how humans notice logos for real-world applications. The following subsequent items provide a summary of the studies that form the basis of this comparative analysis, showcasing their relevance in the context of brand logo attention:
+
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/outputs/p_thesis.pdf}
+    \caption{Sample images illustrating the influence of packaging shape (left) and the presence of an image on directing attention to different elements, such as the logo (right).}
+    \label{fig:Previous Hypotheses Packagings}
+\end{figure}
+
+
+\begin{enumerate}
+    \item \textbf{Study 1 }
+
+      Piqueras-Fiszman \emph{et al.}\citep{PIQUERASFISZMAN2013328} examined the influence of packaging shape and the presence of an image on attention to different elements, like the logo. It was found that a squared shape, as opposed to a rounded one, drew more attention to the logo. They have also demonstrated that the photo element on product packaging was highly influential in drawing consumer interest rather than text. Additional studies have also suggested that geometric and pictorial cues can guide visual attention, although the extent of these effects may vary depending on context \citep{Ampuero_Vila2006, BlochPeter1995}. Backing these ideas, our initial results, as displayed in Table \ref{table:thesis_previous}, suggest that packaging with a squared shape indeed garnered more attention to the logo compared to rounded shapes. Notably, the obtained results generally align with existing research, indicating that while packaging shape and imagery seem to influence consumer attention, these effects should be interpreted cautiously given potential contextual variations \citep{underwood2003communicative}. Figure \ref{fig:Previous Hypotheses Packagings} showcases a sample of images created for testing this study.
+
+
+    \item \textbf{Study 2}
+
+    The findings from studies proposed by Dong \emph{et al.}\citep{Dong2018} and Riaz \emph{et al.}\citep{Riaz2019} underscore a noteworthy connection between logo placement and consumer purchase intention. The research indicates that high-power brands tend to benefit from having their logos placed at the top of packaging, while low-power brands may be favored when logos are positioned lower. This effect appears to be influenced by cultural reading patterns and the natural hierarchy of visual cues \citep{underwood2003communicative}. The study explores strategic logo placement using the concept of power metaphors, suggesting that top-of-packaging placement may enhance perceived brand power. It should be noted that these relationships are context-dependent and that variations in experimental conditions warrant a cautious interpretation of the results in practical settings. The results of our proposed model, as detailed in Table \ref{table:thesis_previous}, generally support these observations, reinforcing their potential relevance for marketing and brand strategy. Figure \ref{fig:Positioning of Brand Logos} illustrates visual examples developed for this study.
+
+
+
+\end{enumerate}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/outputs/positiioning.pdf}
+    \caption{Testing images to demonstrate how logo position impacts brand attention. Top-to-bottom logo positioning (top) and all-around logo positioning (bottom).}
+    \label{fig:Positioning of Brand Logos}
+\end{figure}
+
+
+%% Previous Hypothesis Images
+\subsubsection{Proposed Hypothesises}
+
+Similarly, as outlined in the preceding section, the proposed brand attention method serves as a robust foundation for exploring brand marketing and visual analytics. Beyond the ongoing studies, we have introduced several new hypotheses that investigate aspects not extensively covered in the existing literature. These hypotheses represent unexplored territories as we strive for a comprehensive understanding of brand perception and consumer behavior. This exploration guides future psychophysical tasks, providing a framework for new investigations in the field.
+
+
+\begin{table}[H]
+    \centering
+    \caption{comparing the impact of top-to-bottom logo positioning, text vs. image, and square-round packaging orientation hypotheses on brand attention score.}
+    \label{table:thesis_previous}
+    \begin{tabular}{l|l|ll}
+    \hline
+    \textbf{Hypothesis} & \textbf{Position} & \textbf{Mean} & \textbf{SE} \\ \hline
+    
+    \multirow{2}{*}{Top-to-Bottom Logo positioning} 
+        & Down   & 28.89  & 5.19 \\
+        & \textbf{UP}   & \textbf{34.05}  & \textbf{5.64} \\    \hline 
+        
+    \multirow{2}{*}{Text vs Image}   
+        & Image & 31.71  & 4.61 \\
+        & \textbf{Text}   & \textbf{37.23}  & \textbf{4.62}  \\   \hline
+    
+    \multirow{2}{*}{Square-Round Packaging Orientation}   
+        & Round & 25.82 & 4.86 \\
+        & \textbf{Square}   & \textbf{27.02}  & \textbf{4.01}  \\   \hline                                      
+    
+    \end{tabular}
+    
+\end{table}
+
+
+
+\begin{itemize}
+    \item \textbf{Positioning of Brand Logos}
+    
+    Previous studies have mostly examined logo placement at either the top or bottom of packaging \citep{Dong2018, Riaz2019}. However, a research gap exists regarding the effects of central and off-center placements (e.g., upper-left, upper-right, bottom-left, and bottom-right) on brand attention. Moreover, while many studies have documented that higher placements generally capture more attention due to reading patterns and visual hierarchy \citep{lautenbacher2012still}, few have systematically explored a broader range of placements in a controlled experimental setting. In our experiments, each placement condition was tested to ensure statistical robustness.
+    
+    The proposed model predicts that positioning the brand logo at the center of the packaging significantly enhances brand attention compared to other positions, as outlined in Table \ref{table:proposed_thesis}. Furthermore, our findings suggest that upper placements tend to attract more attention than lower placements, with the upper-left corner outperforming the upper-right corner—potentially due to the left-to-right scanning habit in Western reading cultures \citep{lautenbacher2012still}. Similarly, among the lower positions, the bottom-left appears more effective than the bottom-right.
+    
+    \item \textbf{Bold Distinction in Packaging}
+    
+    Many packaging designs incorporate bold text or objects, yet the impact of these elements on brand logo attention has been under-explored. To investigate this, we conducted experiments in which we selectively bolded or emphasized non-logo textual elements and graphical objects on the packaging, while keeping the logo constant. 
+    The proposed model predicts that when non-logo elements are visually enhanced (e.g., through bolding), they can act as competing focal points, potentially reducing the relative visual attention directed toward the brand logo. This finding aligns with theories of selective visual attention, which suggest that salient distractors can divert attention from a primary target \citep{wolfe1994guided, gelade2001feature}. Moreover, research in design studies shows that the interplay of contrasting visual elements—such as bold versus regular typography—affects the overall perceptual hierarchy and may compromise brand identity consistency if not balanced properly \citep{kress1996reading, underwood2003communicative}.
+    Table \ref{table:proposed_thesis} details the experimental outcomes, demonstrating a measurable reduction in the brand attention score when non-logo elements are emphasized.
+
+    \vspace{3pt}
+        
+    \item \textbf{Presence of Person in Packaging}
+    
+     It is well known that human faces instinctively capture visual attention \citep{cerf2007predicting}. However, their influence on brand attention within packaging contexts has received limited investigation. In our experiments, including a person or face in the packaging led to a measurable decrease in attention toward the brand logo, as shown in Table \ref{table:proposed_thesis}. This result aligns with previous observations that faces, due to their strong attentional pull, can divert gaze from other visual elements \citep{vuilleumier2002neural}.
+
+      \vspace{3pt}
+
+
+    \item \textbf{Multi Packaging}
+    
+    The influence of presenting multiple packages of a brand in a single image has received limited study, particularly regarding its impact on brand logo visibility and attention. In our experiments, each condition was tested using images, with the multi-packaging condition displaying between 2 to 4 packages of the same brand, compared to images with a single package. The proposed model predicts that images containing multiple packages are more effective at absorbing brand attention than single-package images, likely due to the increased opportunity for the brand logo to be detected in varied spatial configurations \citep{underwood2003communicative, BlochPeter1995}. These findings suggest that repetition may enhance visual attention; however, this effect should be interpreted cautiously, as factors such as shelf arrangement, ambient lighting, and overall brand identity may moderate the outcome \citep{ampuero2006consumer}.
+
+    
+    \begin{figure}[!ht]
+        \centering
+        \includegraphics[width=1\textwidth]{figures/outputs/Nw_thesis.pdf}
+        \caption{Sample images for assessing the proposed hypotheses: multi objects (top left), multiple packaging (top center), presence of a person (top right), bold distinction (bottom left), horizontal-vertical brand logo orientation (bottom center), and horizontal-vertical packaging orientation (bottom right).}
+        \label{fig:Proposed Hypotheses Packagings}
+    \end{figure}
+
+ \vspace{3pt}
+
+    \item \textbf{Multi Objects in Packaging}
+    
+    The effect of featuring multiple objects in packaging design (e.g., presenting a single orange versus 2 to 4 oranges) on brand logo attention remains underexplored. The proposed model predicts that packaging designs with multiple objects divert attention from the brand logo, as shown in Table \ref{table:proposed_thesis}. Our experimental results, comparing images with a single object against those with 2 to 4 objects, indicate that additional objects increase visual clutter and diminish the logo's prominence \citep{gelade2001feature, wolfe1994guided}. The achieved results imply that simpler packaging featuring only one object is more effective in maintaining higher brand logo attention.
+    
+    % These findings suggest that simpler packaging featuring only one object is more effective in maintaining higher brand logo attention.
+
+
+
+     \vspace{3pt}
+
+    \item \textbf{Horizontal-Vertical Packaging Orientation}
+
+    The proposed model predicts that horizontally oriented packaging enhances brand logo attention more effectively than vertically oriented packaging. This may be because a horizontal layout offers a broader, more balanced visual field that can emphasize the logo's scale and prominence \citep{kress1996reading, ware2019information}. Experimental results in Table \ref{table:proposed_thesis} indicate a clear preference for horizontal packaging designs. These findings are consistent with established visual processing principles and design theories.  
+
+
+\begin{table}[H]
+    \centering
+    \caption{Comparing the impact of top-to-bottom logo positioning, all-around logo positioning, bold distinction, horizontal-vertical brand logo orientation, horizontal-vertical packaging orientation, presence of person, multi-object and multi packaging on brand attention score.}
+    \label{table:proposed_thesis}
+    \begin{tabular}{l|l|ll}
+        \hline
+        \textbf{Hypothesis} & \textbf{Position} & \textbf{Mean} & \textbf{SE} \\ \hline
+        
+        \multirow{3}{*}{Top-to-Bottom Logo positioning} 
+            & Down   & 28.89  & 5.19 \\
+            & UP   & 34.05  & 5.64 \\
+            & \textbf{Center}   & \textbf{40.02}  & \textbf{7.06} \\ \hline
+        
+        \multirow{5}{*}{All-Around Logo Positioning} 
+            & Down-Right   & 15.05  & 3.05 \\
+            & Down-Left   & 18.8  & 3.41 \\
+            & UP-Right   & 16.51  & 3.05 \\
+            & UP-Left   & 20.24  & 3.34 \\
+            & \textbf{Center}   & \textbf{24.92}  & \textbf{4.12} \\  \hline   
+                                                   
+        \multirow{2}{*}{Bold Distinction} 
+           & Boldness   & 19.98  & 2.27 \\
+           & \textbf{Not Bold}   & \textbf{21.1}  & \textbf{2.35} \\ \hline
+           
+        \multirow{2}{*}{Horizontal-Vertical Brand logo Orientation}  
+           & Horizontal & 29.91  & 4.05 \\
+           & \textbf{Vertical}   & \textbf{34.54}  & \textbf{4.8}  \\ \hline
+        
+        \multirow{2}{*}{Horizontal-Vertical Packaging Orientation}  
+           & Vertical &  27.92 & 4.92 \\
+           & \textbf{Horizontal}   & \textbf{36.92} & \textbf{5.59}   \\ \hline   
+        
+        \multirow{2}{*}{Person in Packaging}  
+        & With Person & 32.26  & 5.76 \\
+        & \textbf{No Person}   & \textbf{36}  & \textbf{6.16}  \\  \hline
+        
+        \multirow{2}{*}{Multi Object in Packaging}  
+           & Multi & 32.5  & 5 \\
+           & \textbf{One}   & \textbf{40.95}  & \textbf{5.29}  \\  \hline
+                                                   
+        \multirow{2}{*}{Multi Packaging}    
+            & Single      & 31.64  & 4.16  \\
+            & \textbf{Multi}     & \textbf{39.52}  & \textbf{4.73}   \\ \hline
+    \end{tabular}
+    
+\end{table}    
+
+    \item \textbf{Horizontal-Vertical Brand Logo Orientation}
+    
+    We examine the influence of logo orientation on attention while keeping other packaging elements constant. The proposed model indicates that vertical logos capture more attention, possibly due to the additional processing required for vertical text \citep{yu2010comparing}. This outcome is consistent with research suggesting that deviations from canonical orientations enhance visual salience by engaging additional attentional mechanisms \citep{itti2001computational}. Table \ref{table:proposed_thesis} presents the corresponding increase in brand attention for vertical logos.
+
+\begin{figure}[!p]
+    \centering
+    \includegraphics[width=1\textwidth]{figures/outputs/color.pdf}
+    \caption{Visualization of the brand-logo color and packaging color influence on brand attention}
+    \label{fig:Brand-Logo and Packaging color}
+\end{figure}
+
+\begin{table}[!ht]
+    \centering
+    \caption{Comparing the impact of packaging color and brand logo color on brand attention score}
+    \label{table:proposed_thesis_color}
+    \begin{tabular}{l|l|ll}
+    \hline
+    \textbf{Hypothesis} & \textbf{Position} & \textbf{Mean} & \textbf{SE} \\ \hline
+    
+    \multirow{8}{*}{Packaging Color} 
+        & black   & 36.82  & 5.65 \\
+        & Brown   & 37.85 & 5.62 \\
+        & Orange   & 37.46  & 5.46 \\
+        & Yellow   & 37.45  & 5.61 \\
+        & Green   & 36.38  & 5.55 \\
+        & Blue   & 37.51 & 5.66 \\
+        & Red   & 38.23 & 5.73 \\
+        & \textbf{White}   & \textbf{40.84}  & \textbf{5.89} \\ \hline
+    
+    \multirow{8}{*}{Brand Logo Color} 
+        & White   & 31.08  & 4.33 \\
+        & Brown   & 34.54 & 4.4 \\
+        & Orange   & 33.2  & 4.63 \\
+        & Yellow   & 32.93  & 4.66 \\
+        & Green   & 32.16  & 4.93 \\
+        & Blue   & 33.13 & 4.87 \\
+        & Black   & 36.56 & 4.7 \\
+        & \textbf{Red}   & \textbf{37.44}  & \textbf{4.79} \\ \hline  
+                                            
+    \end{tabular}
+    
+\end{table}
+
+   \vspace{3pt}
+
+
+    \item \textbf{Brand Logo Color}
+    
+     The influence of logo color on the capture of consumer attention has been a topic of interest in research on marketing and color psychology \citep{raheem2014impact, singh2006impact}. However, comprehensive studies comparing a wide range of colors in the context of brand logos remain limited. In our study, we examined eight colors —red, blue, green, yellow, orange, purple, black, and white— to assess their impact on brand attention. Our experimental results (see Table \ref{table:proposed_thesis_color}) indicate that, under controlled conditions, logos rendered in red tend to attract higher attention scores. Nevertheless, this outcome should be interpreted with caution; while red's associations with alertness and prominence \citep{singh2006impact} may enhance salience, design literature emphasizes that brand colors are chosen for long-term identity consistency and contextual relevance \citep{kress1996reading, wheeler2017designing}.
+
+   \vspace{3pt}
+
+
+    \item \textbf{Packaging Color}
+    
+    Packaging color has a substantial impact on brand visual attention, yet there exists limited research comparing various colors systematically. In our experiments, we examined how different packaging colors affect the visibility of the brand logo. The proposed model predicts that packaging color significantly influences brand attention, with less intense, warmer, and simpler colors enhancing logo visibility. To ensure a robust evaluation, the packaging was modified exactly once for each color condition—red, blue, green, yellow, orange, purple, black, and white—thereby isolating the impact of each color on consumer perception. The achieved results, as shown in Table \ref{table:proposed_thesis_color}, indicate that white, due to its neutral nature, allows the brand logo to stand out more effectively. This finding aligns with previous studies suggesting that neutral backgrounds can enhance logo salience by providing high contrast \citep{raheem2014impact}.
+
+\end{itemize}
+
+
+Figures \ref{fig:Positioning of Brand Logos} , \ref{fig:Proposed Hypotheses Packagings} and \ref{fig:Brand-Logo and Packaging color} present samples from the brand attention dataset, serving as empirical evidence for the evaluation of our proposed hypotheses.
+
+
+\section{Conclusion and Discussion}
+\label{Conclusion}
+The importance of logos within packaging emerges as an influential visual cue, profoundly shaping consumer perception and promoting brand recognition. This paper introduces a module specifically designed to model human attention to brand logos in packaging. The module comprises three main components: fine-tuned YOLOv8 logo detection, a novel CNN-Transformer-based saliency map prediction model that outperforms existing methods in predicting visual attention, and a derived brand attention score. To validate our approach, we compared its predictions against established psychophysical studies, demonstrating that the proposed method aligns well with known trends in brand attention.
+Our study contributes to bridging a research gap by verifying established hypotheses while introducing seven new ones—such as the impact of multi-packaging, multiple objects, and color variations on brand attention. These contributions advance the literature by offering a quantifiable measure of brand salience that integrates both traditional design theories and computational methods.
+By utilizing the capabilities of this module, it becomes possible to simulate human visual attention to brand logos under controlled conditions, thereby opening new opportunities for testing unexplored hypotheses in branding. For example, our model suggests that positioning the brand logo at the center or upper left of the packaging increases its visibility, while it predicts that a red logo and white packaging can enhance the brand attention score under the tested conditions.
+While the practical utility of the proposed module is highlighted for designers in advertising and packaging, we acknowledge that design practice relies heavily on inductive approaches and visual intuition, as emphasized in semiotic frameworks~\cite{kress1996reading}. Thus, our tool is best viewed as a complementary aid that provides data-driven insights rather than a prescriptive solution, allowing designers to refine their intuitions with empirical evidence.
+Moreover, our experimental dataset primarily consists of controlled and synthetic images, which ensures systematic evaluation but may not fully capture the complexities of real-world packaging—such as variations in shape, angle, and minor damage. Future work could focus on incorporating more diverse, real-world datasets and employing eye-tracking experiments to further validate and cross-validate the brand attention score. Such efforts will enhance the robustness and external validity of the model.
+
+
+
+\subsection*{Competing Interests}
+The authors declare that they have no competing interests.
+
+
+\bibliography{sn-bibliography}
+
+\end{document}
